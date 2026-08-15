@@ -110,14 +110,14 @@ function AdminOrderDetail() {
               </tr>
             </thead>
             <tbody>
-              {(data.order_items ?? []).map((item: Record<string, string | number>) => (
-                <tr key={String(item["id"])} className="border-b border-border last:border-0">
-                  <td className="p-4">{item["style_number"]}</td>
-                  <td className="p-4">{item["product_name"]}</td>
-                  <td className="p-4">{item["category_name"] ?? "—"}</td>
-                  <td className="p-4 text-center">{item["quantity"]}</td>
-                  <td className="p-4 text-right">{formatPrice(item["unit_price"])}</td>
-                  <td className="p-4 text-right">{formatPrice(item["total_price"])}</td>
+              {(data.order_items ?? []).map((item) => (
+                <tr key={item.id} className="border-b border-border last:border-0">
+                  <td className="p-4">{item.style_number}</td>
+                  <td className="p-4">{item.product_name}</td>
+                  <td className="p-4">{item.category_name ?? "—"}</td>
+                  <td className="p-4 text-center">{item.quantity}</td>
+                  <td className="p-4 text-right">{formatPrice(item.unit_price)}</td>
+                  <td className="p-4 text-right">{formatPrice(item.total_price)}</td>
                 </tr>
               ))}
             </tbody>
