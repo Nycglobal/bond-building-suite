@@ -51,7 +51,7 @@ export function CustomerShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5">
-          <Link to="/catalog">
+          <Link to="/catalog" search={{ category: undefined, q: undefined }}>
             <BrandMark />
           </Link>
           <div className="flex items-center gap-3">
