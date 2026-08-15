@@ -8,12 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/account";
 import { useSignedUrls } from "@/lib/images";
 
-type CatalogSearch = { category?: string; q?: string };
+type CatalogSearch = { category: string | undefined; q: string | undefined };
 
 export const Route = createFileRoute("/_authenticated/catalog/")({
   validateSearch: (search: Record<string, unknown>): CatalogSearch => ({
-    category: typeof search.category === "string" ? search.category : undefined,
-    q: typeof search.q === "string" ? search.q : undefined,
+    category: typeof search["category"] === "string" ? search["category"] : undefined,
+    q: typeof search["q"] === "string" ? search["q"] : undefined,
   }),
   head: () => ({
     meta: [
