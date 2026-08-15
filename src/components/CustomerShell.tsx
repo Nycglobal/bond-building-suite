@@ -1,9 +1,9 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-import { BrandMark } from "@/components/BrandMark";
-import { Button } from "@/components/ui/button";
+import { CustomerSidebar } from "@/components/CustomerSidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAccount } from "@/hooks/useAccount";
 
@@ -48,55 +48,26 @@ export function CustomerShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5">
-          <Link to="/catalog" search={{ category: undefined, q: undefined }}>
-            <BrandMark />
-          </Link>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-xs text-muted-foreground sm:inline">
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background">
+        <CustomerSidebar
+          categories={categories.data ?? []}
+          cartCount={cartCount.data ?? 0}
+          onSignOut={signOut}
+        />
+        <SidebarInset className="bg-background">
+          <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b border-border bg-background px-4">
+            <SidebarTrigger className="text-muted-foreground hover:text-primary" />
+            <span className="text-xs tracking-[0.15em] text-muted-foreground uppercase">
               {account?.customer?.company_name ?? ""}
             </span>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/my-order">
-                My Catalog Order
-                {(cartCount.data ?? 0) > 0 ? ` (${cartCount.data})` : ""}
-              </Link>
-            </Button>
-            <Button variant="ghost" size="sm" onClick={signOut}>
-              Sign Out
-            </Button>
-          </div>
-        </div>
-        <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-6 gap-y-2 px-4 pb-4 text-xs tracking-[0.18em] uppercase">
-          <Link
-            to="/catalog"
-            search={{ category: undefined, q: undefined }}
-            activeOptions={{ exact: true, includeSearch: true }}
-            activeProps={{ className: "text-primary border-b border-accent" }}
-            className="pb-1 text-muted-foreground transition-colors hover:text-primary"
-          >
-            All Jewelry
-          </Link>
-          {(categories.data ?? []).map((category) => (
-            <Link
-              key={category.id}
-              to="/catalog"
-              search={{ category: category.id, q: undefined }}
-              activeOptions={{ includeSearch: true }}
-              activeProps={{ className: "text-primary border-b border-accent" }}
-              className="pb-1 text-muted-foreground transition-colors hover:text-primary"
-            >
-              {category.name}
-            </Link>
-          ))}
-        </nav>
-      </header>
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">{children}</main>
-      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Jewel Brillance NYC · Wholesale only
-      </footer>
-    </div>
+          </header>
+          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">{children}</main>
+          <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Jewel Brillance NYC · Wholesale only
+          </footer>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
