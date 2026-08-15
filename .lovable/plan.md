@@ -1,71 +1,77 @@
-# Jewel Brillance NYC — Wholesale Catalog
+# Jewel Brillance NYC — Wholesale Catalog Build Plan
 
-A private, login-only wholesale jewelry catalog with a customer side and a full admin panel. Clean, white background, navy accents, minimal, mobile-friendly. No public storefront, no cart checkout, no payments.
+A private, login-only wholesale jewelry catalog: customer catalog + full admin panel. No public storefront, no cart checkout, no payments. Clean, white, navy accents, luxury minimal, mobile-first.
 
 ## Backend (Lovable Cloud)
 
-Enable Lovable Cloud for database, authentication, file storage, and email sending.
+Enable Lovable Cloud for database, authentication, image storage, and email.
 
-Tables (all with row-level security):
-- `customers` — name, company, email, phone, username, active, created_at, linked auth user
-- `user_roles` — separate role table (`admin`, `customer`); roles never stored on the profile
-- `categories` — name, active, display_order (seeded: Rings, Earrings, Bracelets, Pendants, Necklaces, Bangles)
-- `products` — category_id, style_number, product_name, description, metal, diamond_type, carat_weight, wholesale_price, active, created_at
-- `product_images` — product_id, image_url, image_order, is_primary (max 20 per product, enforced server-side)
-- `orders` — order_number (JB-000001, auto-incrementing), customer_id, customer_name, company, email, phone, notes, status, total_quantity, total_value, created_at
-- `order_items` — order_id, product_id, style_number, product_name, quantity, unit_price, total_price
-- `settings` — wholesale_email, company_name (admin-editable, never hard-coded)
+Tables:
+- `customers` — id, name, company, email, phone, username, active, created_at, linked auth account (passwords handled by managed auth, never stored in this table, never plain text)
+- `user_roles` — separate role table (`admin`, `customer`); roles never stored on the customer row
+- `categories` — id, name, active, display_order — seeded with Rings, Earrings, Bracelets, Pendants, Necklaces, Bangles
+- `products` — id, category_id, style_number, product_name, description, metal, diamond_type, carat_weight, wholesale_price, active, created_at
+- `product_images` — id, product_id, image_url, image_order, is_primary (hard cap of 20 per product enforced in the database)
+- `orders` — id, order_number, customer_id, customer_name, company, email, phone, notes, status, total_quantity, total_value, created_at
+- `order_items` — id, order_id, product_id, style_number, product_name, quantity, unit_price, total_price
+- `settings` — id, wholesale_email, company_name
 
-Storage: a `product-images` bucket, admin-write, readable by signed-in users.
+Storage: `product-images` bucket — admin writes, signed-in users read.
 
-Security rules:
-- Passwords are handled by the managed auth system — never stored as plain text.
-- Customers can read only active products/images/categories, and only their own orders.
-- Only admins can read/write customers, settings, all orders, and products.
-- Inactive customers are blocked at login.
+Security (row-level policies on every table):
+- Customers read only active categories, active products, and their images. Nothing else.
+- Customers can read only their own orders; they never see other customers, other orders, settings, or the admin panel.
+- Only admins read/write customers, settings, all orders, all products, categories, images.
+- Inactive customers are blocked at login and cannot load the catalog.
+- Order numbers (JB-000001) generated atomically in the database so they never duplicate.
 
-## Customer experience
+## Customer side
 
-1. **Login page** — username + password (username resolved to the account behind the scenes). Branded, minimal. No public sign-up; accounts are created by admin only.
-2. **Catalog** — header "Jewel Brillance NYC", nav: All, Rings, Earrings, Bracelets, Pendants, Necklaces, Bangles, My Order. Search box matching Style Number or Product Name.
+1. **Login page** — username + password, branded. No self sign-up; only admin creates accounts. Inactive accounts get a clear "account inactive" message.
+2. **Catalog** — header "Jewel Brillance NYC"; nav: All, Rings, Earrings, Bracelets, Pendants, Necklaces, Bangles, My Order. Search box matching Style Number or Product Name. Logout in the header.
 3. **Grid cards** — main image, style number, product name, wholesale price, Add to Order.
-4. **Product page** — large gallery with thumbnails, swipeable on mobile, full specs (metal, diamond type, carat weight), price, quantity + Add to Order.
-5. **My Catalog Order** — line items with increase/decrease/remove; totals for Total Styles, Total Quantity, Estimated Wholesale Total. Persisted per customer so it survives reloads.
-6. **Submit Catalog Order** — form for Customer Name, Company, Email, Phone, Notes (prefilled from the account). Creates the order + items, assigns order number, clears the list, shows a confirmation with the order number.
+4. **Style page** — large gallery with thumbnails, swipeable on mobile; style number, product name, specs (category, metal, diamond type, carat weight), description, wholesale price, quantity + Add to Order.
+5. **My Catalog Order** — list of selected styles with increase / decrease / remove; shows Total Styles, Total Quantity, Estimated Wholesale Total. Saved per customer so it survives reloads and devices.
+6. **Submit Catalog Order** — form for Customer Name, Company Name, Email, Phone, Notes (prefilled from the account). Creates the order + items, assigns JB-000001 style number, clears the list, shows a confirmation with the order number.
 
-## Emails
+## Email
 
-On submission, two emails go out: a full order email to the wholesale address from Settings, and a confirmation to the customer. Both include order number, customer/company/email/phone, and a table of style number, product, category, quantity, wholesale price, line total, plus notes and grand total.
+On submit, two emails send automatically:
+- To the wholesale address from Settings: header "Jewel Brillance NYC — Wholesale Catalog Order", order number, customer name, company, email, phone, then a table of Style Number, Product, Category, Quantity, Wholesale Price, Total — plus customer notes and grand total.
+- Confirmation copy to the customer.
+
+The address always comes from Settings — never hard-coded.
 
 ## Admin panel
 
-Separate `/admin` area, admin-only, redirects everyone else.
+Separate `/admin` area; anyone who isn't an admin is redirected out.
 
-- **Dashboard** — counts of products, customers, new orders, recent orders.
-- **Products** — list with search/filter by category and status; add/edit/delete; activate/deactivate; change category; image manager (multi-upload, delete, drag to reorder, set main image, "Images: 8 / 20" counter with hard 20 cap).
-- **Categories** — add/edit, activate/deactivate, reorder.
-- **Customers** — add, edit, delete, change/reset password, activate/deactivate. Customer credentials are never exposed to other customers.
-- **Orders** — table of order number, customer, company, date, total styles, total quantity, estimated value, status; detail view with all selected styles; status changes across New, Reviewing, Confirmed, Completed, Cancelled.
+- **Dashboard** — counts of products, active customers, new orders; recent orders list.
+- **Products** — searchable list, filter by category and active status; add / edit / delete style; activate/deactivate; change category; all style fields from the spec.
+- **Image manager** (inside product edit) — multi-file upload, delete, drag to reorder, set main image, live "Images: 8 / 20" counter, uploads blocked past 20.
+- **Categories** — add, edit, activate/deactivate, set display order.
+- **Customers** — add, edit, delete, change/reset password, activate/deactivate. Credentials never exposed to other customers.
+- **Orders** — table with Order Number, Customer, Company, Date, Total Styles, Total Quantity, Estimated Value, Status; detail view listing every selected style; status set to New, Reviewing, Confirmed, Completed or Cancelled.
 - **Settings** — wholesale email address and company name.
 
 ## Design
 
-White background, navy blue accents, generous whitespace, serif display for the wordmark, clean sans for everything else. No heavy animation, no e-commerce clutter. Fully responsive; catalog grid and gallery tuned for phone use.
+White background, navy blue accents, generous whitespace, a refined serif wordmark with a clean sans for everything else. No animation flourishes, no e-commerce clutter, large tap targets, fast on phones.
 
 ## Technical notes
 
-- TanStack Start routes: `/login`, `/catalog`, `/catalog/$style`, `/my-order`, and `/admin/*`.
-- All privileged writes (customer creation, password reset, order submission, email sending, image cap enforcement) run in server functions that verify the caller's role — never trusted from the browser.
-- Order numbers generated atomically in the database to avoid duplicates.
-- The first admin account is created during setup so you can log in immediately.
+- Routes: `/login`, `/catalog`, `/catalog/$style`, `/my-order`, `/admin`, `/admin/products`, `/admin/categories`, `/admin/customers`, `/admin/orders`, `/admin/settings`.
+- Username login is mapped to the managed auth system behind the scenes so passwords stay hashed; admin-issued password resets go through a server-side admin action.
+- Every privileged action (creating customers, resetting passwords, submitting orders, sending email, enforcing the 20-image cap) runs server-side with the caller's role verified — never trusted from the browser.
+- The first admin account is created during setup so you can log in and start uploading immediately.
 
 ## Build order
 
-1. Cloud enablement, schema, policies, seed categories.
-2. Auth + login page + route protection.
+1. Cloud, schema, policies, seed the six categories, create admin account.
+2. Auth + login page + route protection (customer vs admin).
 3. Admin: categories, products, image manager.
-4. Customer catalog, product page, search.
+4. Customer catalog, category nav, search, style page gallery.
 5. My Catalog Order + submission + order numbering.
-6. Emails + Settings.
-7. Admin customers, orders, dashboard.
-8. Mobile polish and final pass.
+6. Settings + both emails.
+7. Admin customers, orders + statuses, dashboard.
+8. Mobile pass and final polish.
