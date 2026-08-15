@@ -1,0 +1,68 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+
+import { supabase } from "@/integrations/supabase/client";
+
+export type AccountCustomer = {
+  id: string;
+  company_name: string;
+  customer_name: string;
+  email: string;
+  phone: string | null;
+  username: string;
+  active: boolean;
+};
+
+export type Account = {
+  userId: string;
+  isAdmin: boolean;
+  customer: AccountCustomer | null;
+};
+
+export async function fetchAccount(): Promise<Account | null> {
+  const { data } = await supabase.auth.getUser();
+  const user = data.user;
+  if (!user) return null;
+
+  const [{ data: roles }, { data: customer }] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("user_id", user.id),
+    supabase
+      .from("customers")
+      .select("id, company_name, customer_name, email, phone, username, active")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
+
+  return {
+    userId: user.id,
+    isAdmin: (roles ?? []).some((r) => r.role === "admin"),
+    customer: (customer as AccountCustomer | null) ?? null,
+  };
+}
+
+export function useAccount() {
+  const queryClient = useQueryClient();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
+        queryClient.invalidateQueries({ queryKey: ["account"] });
+      }
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [queryClient]);
+
+  const query = useQuery({
+    queryKey: ["account"],
+    queryFn: fetchAccount,
+    enabled: ready,
+    staleTime: 30_000,
+  });
+
+  return {
+    account: query.data ?? null,
+    isLoading: !ready || query.isLoading,
+  };
+}
