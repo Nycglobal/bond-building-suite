@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as SetupRouteImport } from './routes/setup'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMyOrderRouteImport } from './routes/_authenticated/my-order'
 import { Route as AuthenticatedCatalogIndexRouteImport } from './routes/_authenticated/catalog.index'
 import { Route as AuthenticatedCatalogProductIdRouteImport } from './routes/_authenticated/catalog.$productId'
@@ -29,6 +30,11 @@ const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMyOrderRoute = AuthenticatedMyOrderRouteImport.update({
   id: '/my-order',
@@ -51,6 +57,7 @@ const AuthenticatedCatalogProductIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/setup': typeof SetupRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/my-order': typeof AuthenticatedMyOrderRoute
   '/catalog/$productId': typeof AuthenticatedCatalogProductIdRoute
   '/catalog/': typeof AuthenticatedCatalogIndexRoute
@@ -58,6 +65,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/setup': typeof SetupRoute
+  '/admin': typeof AuthenticatedAdminRoute
   '/my-order': typeof AuthenticatedMyOrderRoute
   '/catalog/$productId': typeof AuthenticatedCatalogProductIdRoute
   '/catalog': typeof AuthenticatedCatalogIndexRoute
@@ -67,20 +75,29 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/setup': typeof SetupRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/my-order': typeof AuthenticatedMyOrderRoute
   '/_authenticated/catalog/$productId': typeof AuthenticatedCatalogProductIdRoute
   '/_authenticated/catalog/': typeof AuthenticatedCatalogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/setup' | '/my-order' | '/catalog/$productId' | '/catalog/'
+  fullPaths:
+    | '/'
+    | '/setup'
+    | '/admin'
+    | '/my-order'
+    | '/catalog/$productId'
+    | '/catalog/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/setup' | '/my-order' | '/catalog/$productId' | '/catalog'
+  to:
+    '/' | '/setup' | '/admin' | '/my-order' | '/catalog/$productId' | '/catalog'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/setup'
+    | '/_authenticated/admin'
     | '/_authenticated/my-order'
     | '/_authenticated/catalog/$productId'
     | '/_authenticated/catalog/'
@@ -115,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/my-order': {
       id: '/_authenticated/my-order'
       path: '/my-order'
@@ -140,12 +164,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedMyOrderRoute: typeof AuthenticatedMyOrderRoute
   AuthenticatedCatalogProductIdRoute: typeof AuthenticatedCatalogProductIdRoute
   AuthenticatedCatalogIndexRoute: typeof AuthenticatedCatalogIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedMyOrderRoute: AuthenticatedMyOrderRoute,
   AuthenticatedCatalogProductIdRoute: AuthenticatedCatalogProductIdRoute,
   AuthenticatedCatalogIndexRoute: AuthenticatedCatalogIndexRoute,
