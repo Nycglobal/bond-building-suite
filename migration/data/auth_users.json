@@ -1,0 +1,34 @@
+[
+  {
+    "id": "89a108cb-d4eb-4ae6-8fca-245c540218a8",
+    "email": "rashidaliuiux@accounts.jewelbrillance.app",
+    "created_at": "2026-08-15T08:58:01.237096Z",
+    "email_confirmed": true,
+    "meta": {
+      "company_name": "north tech solution",
+      "email_verified": true,
+      "username": "rashidaliuiux"
+    }
+  },
+  {
+    "id": "7e00e9b8-6634-4fd9-8571-7d68f33c20b9",
+    "email": "smokebuyer@accounts.jewelbrillance.app",
+    "created_at": "2026-08-15T08:39:31.813095Z",
+    "email_confirmed": true,
+    "meta": {
+      "company_name": "Smoke Co",
+      "email_verified": true,
+      "username": "smokebuyer"
+    }
+  },
+  {
+    "id": "e6a08843-8482-46d6-9831-81aa72bd54d6",
+    "email": "smokeadmin@accounts.jewelbrillance.app",
+    "created_at": "2026-08-15T08:39:01.538137Z",
+    "email_confirmed": true,
+    "meta": {
+      "email_verified": true,
+      "username": "smokeadmin"
+    }
+  }
+]
