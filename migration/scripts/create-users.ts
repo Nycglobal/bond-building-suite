@@ -32,9 +32,24 @@ const users: SourceUser[] = await Bun.file("migration/data/auth_users.json").jso
 
 const map: Record<string, string> = {};
 
+// Existing accounts in the target (makes re-runs idempotent).
+const existing = new Map<string, string>();
+for (let page = 1; ; page++) {
+  const { data, error } = await dst.auth.admin.listUsers({ page, perPage: 200 });
+  if (error) throw new Error(`listUsers: ${error.message}`);
+  for (const u of data.users) if (u.email) existing.set(u.email.toLowerCase(), u.id);
+  if (data.users.length < 200) break;
+}
+
 for (const user of users) {
   if (skip.has(user.email.toLowerCase())) {
     console.log(`skip ${user.email}`);
+    continue;
+  }
+  const found = existing.get(user.email.toLowerCase());
+  if (found) {
+    map[user.id] = found;
+    console.log(`exists ${user.email}`);
     continue;
   }
   const { data, error } = await dst.auth.admin.createUser({
@@ -47,6 +62,7 @@ for (const user of users) {
   map[user.id] = data.user!.id;
   console.log(`created ${user.email}`);
 }
+
 
 await Bun.write("migration/data/user-map.json", JSON.stringify(map, null, 2));
 console.log(`Wrote user map for ${Object.keys(map).length} users.`);

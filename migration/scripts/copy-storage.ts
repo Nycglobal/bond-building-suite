@@ -50,16 +50,29 @@ for (const bucket of BUCKETS) {
 
   let done = 0;
   for (const path of paths) {
-    const { data, error } = await src.storage.from(bucket).download(path);
-    if (error) throw new Error(`download ${bucket}/${path}: ${error.message}`);
-    const body = new Uint8Array(await data.arrayBuffer());
-    const { error: upErr } = await dst.storage.from(bucket).upload(path, body, {
-      upsert: true,
-      contentType: data.type || "application/octet-stream",
-    });
-    if (upErr) throw new Error(`upload ${bucket}/${path}: ${upErr.message}`);
+    let lastError = "";
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      const { data, error } = await src.storage.from(bucket).download(path);
+      if (error) {
+        lastError = `download: ${error.message}`;
+      } else {
+        const body = new Uint8Array(await data.arrayBuffer());
+        const { error: upErr } = await dst.storage.from(bucket).upload(path, body, {
+          upsert: true,
+          contentType: data.type || "application/octet-stream",
+        });
+        if (!upErr) {
+          lastError = "";
+          break;
+        }
+        lastError = `upload: ${upErr.message}`;
+      }
+      await new Promise((r) => setTimeout(r, attempt * 1000));
+    }
+    if (lastError) throw new Error(`${bucket}/${path} ${lastError}`);
     if (++done % 25 === 0) console.log(`  ${done}/${paths.length}`);
   }
+
   console.log(`[${bucket}] copied ${done}`);
 }
 
