@@ -184,5 +184,3 @@ GRANT EXECUTE ON FUNCTION public.next_order_number() TO service_role;
 ALTER TABLE public.product_images ADD COLUMN IF NOT EXISTS bucket text NOT NULL DEFAULT 'product-images';
 -- ==== 20260816194812_6268b9b7-df78-40b8-a204-ce27df1bd7e6.sql ====
 CREATE POLICY "signed in read images bucket" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'images');
--- ==== combined.sql ====
-
