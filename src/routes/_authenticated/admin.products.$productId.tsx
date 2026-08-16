@@ -211,10 +211,10 @@ function ProductEditor() {
   }
 
   const removeImage = useMutation({
-    mutationFn: async (image: { id: string; image_path: string }) => {
+    mutationFn: async (image: { id: string; image_path: string; bucket: string | null }) => {
       const { error } = await supabase.from("product_images").delete().eq("id", image.id);
       if (error) throw error;
-      await supabase.storage.from(PRODUCT_BUCKET).remove([image.image_path]);
+      await supabase.storage.from(image.bucket || PRODUCT_BUCKET).remove([image.image_path]);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["admin-product-images", productId] });
