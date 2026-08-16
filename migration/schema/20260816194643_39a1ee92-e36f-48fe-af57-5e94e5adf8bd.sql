@@ -1,0 +1,1 @@
+ALTER TABLE public.product_images ADD COLUMN IF NOT EXISTS bucket text NOT NULL DEFAULT 'product-images';
