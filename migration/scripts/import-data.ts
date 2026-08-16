@@ -67,13 +67,8 @@ for (const table of TABLES) {
     continue;
   }
 
-  // settings row id=1 is created by the schema, so upsert instead of insert.
-  const query =
-    table === "settings"
-      ? dst.from(table).upsert(rows, { onConflict: "id" })
-      : dst.from(table).upsert(rows, { onConflict: "id" });
-
-  const { error } = await query;
+  // Upsert on id so re-runs are safe and the schema-created settings row is updated.
+  const { error } = await dst.from(table).upsert(rows, { onConflict: "id" });
   if (error) throw new Error(`${table}: ${error.message}`);
   console.log(`${table}: imported ${rows.length}`);
 }
