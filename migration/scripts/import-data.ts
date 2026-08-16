@@ -67,6 +67,20 @@ for (const table of TABLES) {
     continue;
   }
 
+  if (table === "categories") {
+    // combined.sql seeds default categories with fresh ids; drop the ones we are
+    // about to replace by name so the source ids (referenced by products) win.
+    const names = rows.map((row) => String(row["name"]));
+    const ids = rows.map((row) => String(row["id"]));
+    const { error: cleanupError } = await dst
+      .from("categories")
+      .delete()
+      .in("name", names)
+      .not("id", "in", `(${ids.join(",")})`);
+    if (cleanupError) throw new Error(`categories cleanup: ${cleanupError.message}`);
+  }
+
+
   // Upsert on id so re-runs are safe and the schema-created settings row is updated.
   const { error } = await dst.from(table).upsert(rows, { onConflict: "id" });
   if (error) throw new Error(`${table}: ${error.message}`);
