@@ -64,7 +64,7 @@ function MyOrderPage() {
       const { data, error } = await supabase
         .from("cart_items")
         .select(
-          "id, quantity, product:products(id, style_number, product_name, wholesale_price, category:categories(name), product_images(image_path, image_order, is_primary))",
+          "id, quantity, product:products(id, style_number, product_name, wholesale_price, category:categories(name), product_images(image_path, image_order, is_primary, bucket))",
         )
         .order("created_at");
       if (error) throw error;
@@ -78,9 +78,9 @@ function MyOrderPage() {
       const images = [...(row.product?.product_images ?? [])].sort(
         (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
       );
-      return images[0]?.image_path;
+      return images[0];
     })
-    .filter((path): path is string => Boolean(path));
+    .filter((image): image is NonNullable<typeof image> => Boolean(image));
   const signed = useSignedUrls(paths);
 
   const totalQuantity = rows.reduce((sum, row) => sum + row.quantity, 0);

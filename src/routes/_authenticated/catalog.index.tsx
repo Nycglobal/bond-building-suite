@@ -47,7 +47,7 @@ function CatalogPage() {
       let query = supabase
         .from("products")
         .select(
-          "id, style_number, product_name, metal, diamond_type, carat_weight, wholesale_price, category:categories(name), product_images(image_path, image_order, is_primary)",
+          "id, style_number, product_name, metal, diamond_type, carat_weight, wholesale_price, category:categories(name), product_images(image_path, image_order, is_primary, bucket)",
         )
         .eq("active", true)
         .order("created_at", { ascending: false });
@@ -64,9 +64,9 @@ function CatalogPage() {
       const images = [...(product.product_images ?? [])].sort(
         (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
       );
-      return images[0]?.image_path;
+      return images[0];
     })
-    .filter((path): path is string => Boolean(path));
+    .filter((image): image is NonNullable<typeof image> => Boolean(image));
   const signed = useSignedUrls(primaryPaths);
 
   const activeCategory = categories.data?.find((c) => c.id === category);

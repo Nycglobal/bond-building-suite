@@ -56,7 +56,7 @@ function ProductPage() {
       const { data, error } = await supabase
         .from("products")
         .select(
-          "id, style_number, product_name, description, metal, diamond_type, carat_weight, wholesale_price, category:categories(name), product_images(id, image_path, image_order, is_primary)",
+          "id, style_number, product_name, description, metal, diamond_type, carat_weight, wholesale_price, category:categories(name), product_images(id, image_path, image_order, is_primary, bucket)",
         )
         .eq("id", productId)
         .eq("active", true)
@@ -69,7 +69,7 @@ function ProductPage() {
   const images = [...(product.data?.product_images ?? [])].sort(
     (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
   );
-  const signed = useSignedUrls(images.map((image) => image.image_path));
+  const signed = useSignedUrls(images);
   const current = images[Math.min(index, Math.max(images.length - 1, 0))];
 
   const addToOrder = useMutation({

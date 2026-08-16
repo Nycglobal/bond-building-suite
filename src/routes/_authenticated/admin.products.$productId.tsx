@@ -101,7 +101,7 @@ function ProductEditor() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_images")
-        .select("id, image_path, image_order, is_primary")
+        .select("id, image_path, image_order, is_primary, bucket")
         .eq("product_id", productId)
         .order("image_order");
       if (error) throw error;
@@ -109,7 +109,7 @@ function ProductEditor() {
     },
   });
 
-  const signed = useSignedUrls((images.data ?? []).map((image) => image.image_path));
+  const signed = useSignedUrls(images.data ?? []);
 
   useEffect(() => {
     if (!product.data) return;
