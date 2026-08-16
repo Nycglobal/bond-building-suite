@@ -11,12 +11,12 @@ import { loadEnv } from "vite";
 // win over any pre-existing injected environment variables. loadEnv() reads .env
 // and .env.local (if present) and returns the parsed map. We then overwrite
 // process.env so SSR/server functions use the same values as the client build.
-const env = loadEnv(process.env.NODE_ENV ?? "development", process.cwd(), "");
+const env = loadEnv(process.env["NODE_ENV"] ?? "development", process.cwd(), "");
 for (const [key, value] of Object.entries(env)) {
   process.env[key] = value;
 }
 
-if (process.env.NODE_ENV === "development") {
+if (process.env["NODE_ENV"] === "development") {
   // eslint-disable-next-line no-console
   console.log(
     `[vite.config] Supabase project: ${process.env["VITE_SUPABASE_PROJECT_ID"] ?? "not set"}`,
