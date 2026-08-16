@@ -1,0 +1,1 @@
+CREATE POLICY "signed in read images bucket" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'images');

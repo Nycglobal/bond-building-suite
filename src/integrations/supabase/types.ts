@@ -221,6 +221,7 @@ export type Database = {
       }
       product_images: {
         Row: {
+          bucket: string
           created_at: string
           id: string
           image_order: number
@@ -229,6 +230,7 @@ export type Database = {
           product_id: string
         }
         Insert: {
+          bucket?: string
           created_at?: string
           id?: string
           image_order?: number
@@ -237,6 +239,7 @@ export type Database = {
           product_id: string
         }
         Update: {
+          bucket?: string
           created_at?: string
           id?: string
           image_order?: number

@@ -101,7 +101,7 @@ function ProductEditor() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("product_images")
-        .select("id, image_path, image_order, is_primary")
+        .select("id, image_path, image_order, is_primary, bucket")
         .eq("product_id", productId)
         .order("image_order");
       if (error) throw error;
@@ -109,7 +109,7 @@ function ProductEditor() {
     },
   });
 
-  const signed = useSignedUrls((images.data ?? []).map((image) => image.image_path));
+  const signed = useSignedUrls(images.data ?? []);
 
   useEffect(() => {
     if (!product.data) return;
@@ -211,10 +211,10 @@ function ProductEditor() {
   }
 
   const removeImage = useMutation({
-    mutationFn: async (image: { id: string; image_path: string }) => {
+    mutationFn: async (image: { id: string; image_path: string; bucket: string | null }) => {
       const { error } = await supabase.from("product_images").delete().eq("id", image.id);
       if (error) throw error;
-      await supabase.storage.from(PRODUCT_BUCKET).remove([image.image_path]);
+      await supabase.storage.from(image.bucket || PRODUCT_BUCKET).remove([image.image_path]);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["admin-product-images", productId] });
