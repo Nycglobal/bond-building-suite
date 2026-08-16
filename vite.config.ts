@@ -5,20 +5,23 @@
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { loadEnv } from "vite";
 
 // The project now points at a self-managed Supabase project. Values in .env must
-// win over any pre-existing injected environment variables.
-const envPath = resolve(process.cwd(), ".env");
-if (existsSync(envPath)) {
-  for (const line of readFileSync(envPath, "utf8").split("\n")) {
-    const match = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
-    if (!match) continue;
-    process.env[match[1]!] = match[2]!.replace(/^["']|["']$/g, "");
-  }
+// win over any pre-existing injected environment variables. loadEnv() reads .env
+// and .env.local (if present) and returns the parsed map. We then overwrite
+// process.env so SSR/server functions use the same values as the client build.
+const env = loadEnv(process.env["NODE_ENV"] ?? "development", process.cwd(), "");
+for (const [key, value] of Object.entries(env)) {
+  process.env[key] = value;
 }
 
+if (process.env["NODE_ENV"] === "development") {
+  // eslint-disable-next-line no-console
+  console.log(
+    `[vite.config] Supabase project: ${process.env["VITE_SUPABASE_PROJECT_ID"] ?? "not set"}`,
+  );
+}
 
 export default defineConfig({
   tanstackStart: {
