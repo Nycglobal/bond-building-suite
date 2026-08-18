@@ -41,7 +41,7 @@ export function AdminSidebar({ onSignOut }: { onSignOut: () => void }) {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-sidebar-border px-3 py-4">
         {collapsed ? (
-          <span className="wordmark text-center text-xl text-sidebar-primary">JB</span>
+          <span className="wordmark text-center text-3xl text-sidebar-primary">JB</span>
         ) : (
           <div className="flex flex-col gap-1">
             <span className="wordmark text-xl text-sidebar-foreground">Jewel Brillance</span>
@@ -54,7 +54,9 @@ export function AdminSidebar({ onSignOut }: { onSignOut: () => void }) {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Manage</SidebarGroupLabel>
+          <SidebarGroupLabel className="h-9 px-2 text-sm font-semibold text-sidebar-foreground">
+            Manage
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV.map((item) => (
@@ -64,8 +66,7 @@ export function AdminSidebar({ onSignOut }: { onSignOut: () => void }) {
                       to={item.to}
                       activeOptions={{ exact: item.exact }}
                       activeProps={{
-                        className:
-                          "bg-sidebar-accent text-sidebar-primary font-medium",
+                        className: "bg-sidebar-accent text-sidebar-primary font-medium",
                       }}
                     >
                       <item.icon className="h-4 w-4" />
@@ -84,9 +85,11 @@ export function AdminSidebar({ onSignOut }: { onSignOut: () => void }) {
           variant="ghost"
           size="sm"
           onClick={onSignOut}
-          className="w-full justify-start gap-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className={`w-full gap-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+            collapsed ? "justify-center" : "justify-start"
+          }`}
         >
-          <LogOut className="h-4 w-4 shrink-0" />
+          <LogOut className={`${collapsed ? "h-6.5 w-6.5" : "h-4 w-4"} shrink-0`} />
           {!collapsed && <span>Sign Out</span>}
         </Button>
       </SidebarFooter>

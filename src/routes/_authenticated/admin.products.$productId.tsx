@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -59,6 +60,51 @@ const emptyForm = {
   active: true,
 };
 
+/** Preset options for the Diamond type dropdown. */
+const DIAMOND_TYPES = [
+  "Natural Diamond",
+  "Lab Grown Diamond",
+  "Moissanite",
+  "Cubic Zirconia",
+  "Sapphire",
+  "Ruby",
+  "Emerald",
+  "Gemstone",
+  "Other",
+];
+
+/** Preset options for the Carat weight dropdown (displayed with " ct"). */
+const CARAT_WEIGHTS = [
+  "0.10",
+  "0.25",
+  "0.33",
+  "0.50",
+  "0.75",
+  "1.00",
+  "1.10",
+  "1.20",
+  "1.25",
+  "1.50",
+  "1.55",
+  "1.75",
+  "2.00",
+  "2.25",
+  "2.50",
+  "2.75",
+  "3.00",
+  "3.50",
+  "4.00",
+  "5.00",
+];
+
+/** Human-friendly carat label that avoids doubling an existing "ct" suffix. */
+function caratLabel(value: string) {
+  return value.toLowerCase().includes("ct") ? value : `${value} ct`;
+}
+
+/** A file staged in memory for a brand-new product until it is saved. */
+type PendingImage = { id: string; file: File; url: string };
+
 function ProductEditor() {
   const { productId } = Route.useParams();
   const isNew = productId === "new";
@@ -67,6 +113,9 @@ function ProductEditor() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState(emptyForm);
   const [uploading, setUploading] = useState(false);
+  // Files staged in memory for a brand-new product (uploaded once it's saved).
+  const [pendingImages, setPendingImages] = useState<PendingImage[]>([]);
+  const [primaryPendingId, setPrimaryPendingId] = useState<string | null>(null);
 
   const categories = useQuery({
     queryKey: ["admin-categories"],
@@ -142,6 +191,7 @@ function ProductEditor() {
       if (!payload.style_number || !payload.product_name) {
         throw new Error("Style number and product name are required");
       }
+      let id = productId;
       if (isNew) {
         const { data, error } = await supabase
           .from("products")
@@ -149,20 +199,59 @@ function ProductEditor() {
           .select("id")
           .single();
         if (error) throw error;
-        return data.id;
+        id = data.id;
+      } else {
+        const { error } = await supabase
+          .from("products")
+          .update({ ...payload, updated_at: new Date().toISOString() })
+          .eq("id", productId);
+        if (error) throw error;
       }
-      const { error } = await supabase
-        .from("products")
-        .update({ ...payload, updated_at: new Date().toISOString() })
-        .eq("id", productId);
-      if (error) throw error;
-      return productId;
+
+      // Upload any staged images (only possible for a brand-new product).
+      let uploadedImages = 0;
+      const totalImages = pendingImages.length;
+      const primaryId = primaryPendingId ?? pendingImages[0]?.id ?? null;
+      let order = 0;
+      for (const image of pendingImages) {
+        const extension = image.file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+        const path = `${id}/${crypto.randomUUID()}.${extension}`;
+        const { error: uploadError } = await supabase.storage
+          .from(PRODUCT_BUCKET)
+          .upload(path, image.file, { contentType: image.file.type, upsert: false });
+        if (uploadError) continue;
+        const { error } = await supabase.from("product_images").insert({
+          product_id: id,
+          image_path: path,
+          image_order: order,
+          is_primary: image.id === primaryId,
+        });
+        if (error) {
+          await supabase.storage.from(PRODUCT_BUCKET).remove([path]);
+          continue;
+        }
+        order += 1;
+        uploadedImages += 1;
+      }
+      return { id, uploadedImages, totalImages };
     },
-    onSuccess: (id) => {
+    onSuccess: ({ id, uploadedImages, totalImages }) => {
       void queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       void queryClient.invalidateQueries({ queryKey: ["admin-product", productId] });
-      toast.success("Product saved");
-      if (isNew) void navigate({ to: "/admin/products/$productId", params: { productId: id } });
+      if (isNew) {
+        if (totalImages > 0 && uploadedImages < totalImages) {
+          toast.warning(
+            `Product saved, but ${totalImages - uploadedImages} image(s) failed to upload`,
+          );
+        } else if (totalImages > 0) {
+          toast.success(`Product saved with ${uploadedImages} image(s)`);
+        } else {
+          toast.success("Product saved");
+        }
+        void navigate({ to: "/admin/products/$productId", params: { productId: id } });
+      } else {
+        toast.success("Product saved");
+      }
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Could not save"),
   });
@@ -210,6 +299,39 @@ function ProductEditor() {
     void queryClient.invalidateQueries({ queryKey: ["admin-products"] });
   }
 
+  /** Stage selected files in memory for a brand-new product (uploaded on save). */
+  function stageFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const room = MAX_PRODUCT_IMAGES - pendingImages.length;
+    if (room <= 0) {
+      toast.error(`Maximum ${MAX_PRODUCT_IMAGES} images per product`);
+      return;
+    }
+    const selected = Array.from(files).slice(0, room);
+    if (selected.length < files.length) {
+      toast.warning(`Only ${room} more image(s) can be added`);
+    }
+    const staged = selected.map((file) => ({
+      id: crypto.randomUUID(),
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    const next = [...pendingImages, ...staged];
+    setPendingImages(next);
+    if (!primaryPendingId && next.length > 0) setPrimaryPendingId(next[0]!.id);
+    if (fileInput.current) fileInput.current.value = "";
+  }
+
+  /** Remove a staged (not yet uploaded) image for a brand-new product. */
+  function removePending(id: string) {
+    setPendingImages((prev) => {
+      const item = prev.find((image) => image.id === id);
+      if (item) URL.revokeObjectURL(item.url);
+      return prev.filter((image) => image.id !== id);
+    });
+    if (primaryPendingId === id) setPrimaryPendingId(null);
+  }
+
   const removeImage = useMutation({
     mutationFn: async (image: { id: string; image_path: string; bucket: string | null }) => {
       const { error } = await supabase.from("product_images").delete().eq("id", image.id);
@@ -224,7 +346,10 @@ function ProductEditor() {
 
   const setPrimary = useMutation({
     mutationFn: async (imageId: string) => {
-      await supabase.from("product_images").update({ is_primary: false }).eq("product_id", productId);
+      await supabase
+        .from("product_images")
+        .update({ is_primary: false })
+        .eq("product_id", productId);
       const { error } = await supabase
         .from("product_images")
         .update({ is_primary: true })
@@ -235,20 +360,6 @@ function ProductEditor() {
       void queryClient.invalidateQueries({ queryKey: ["admin-product-images", productId] });
       toast.success("Main image updated");
     },
-  });
-
-  const moveImage = useMutation({
-    mutationFn: async ({ index, direction }: { index: number; direction: -1 | 1 }) => {
-      const list = [...(images.data ?? [])];
-      const target = index + direction;
-      if (target < 0 || target >= list.length) return;
-      const a = list[index]!;
-      const b = list[target]!;
-      await supabase.from("product_images").update({ image_order: target }).eq("id", a.id);
-      await supabase.from("product_images").update({ image_order: index }).eq("id", b.id);
-    },
-    onSuccess: () =>
-      void queryClient.invalidateQueries({ queryKey: ["admin-product-images", productId] }),
   });
 
   return (
@@ -334,23 +445,43 @@ function ProductEditor() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="diamond_type">Diamond type</Label>
-              <Input
-                id="diamond_type"
-                maxLength={80}
-                placeholder="Natural / Lab Grown"
+              <Select
                 value={form.diamond_type}
-                onChange={(e) => setForm({ ...form, diamond_type: e.target.value })}
-              />
+                onValueChange={(value) => setForm({ ...form, diamond_type: value })}
+              >
+                <SelectTrigger id="diamond_type">
+                  <SelectValue placeholder="Select diamond type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Set([...DIAMOND_TYPES, form.diamond_type].filter(Boolean))].map(
+                    (type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="carat_weight">Carat weight</Label>
-              <Input
-                id="carat_weight"
-                maxLength={60}
-                placeholder="1.25 ct"
+              <Select
                 value={form.carat_weight}
-                onChange={(e) => setForm({ ...form, carat_weight: e.target.value })}
-              />
+                onValueChange={(value) => setForm({ ...form, carat_weight: value })}
+              >
+                <SelectTrigger id="carat_weight">
+                  <SelectValue placeholder="Select carat weight" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[...new Set([...CARAT_WEIGHTS, form.carat_weight].filter(Boolean))].map(
+                    (carat) => (
+                      <SelectItem key={carat} value={carat}>
+                        {caratLabel(carat)}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -386,27 +517,79 @@ function ProductEditor() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg text-primary">Images</h2>
             <span className="text-xs text-muted-foreground">
-              {(images.data ?? []).length}/{MAX_PRODUCT_IMAGES}
+              {isNew ? pendingImages.length : (images.data ?? []).length}/{MAX_PRODUCT_IMAGES}
             </span>
           </div>
 
           {isNew ? (
-            <p className="text-sm text-muted-foreground">
-              Save the product first, then upload up to {MAX_PRODUCT_IMAGES} photos.
-            </p>
+            <>
+              <label className="mb-4 flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary">
+                <Upload className="h-4 w-4" />
+                {pendingImages.length > 0 ? "Add more images" : "Upload images"}
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={(e) => stageFiles(e.target.files)}
+                />
+              </label>
+              <p className="mb-4 text-sm text-muted-foreground">
+                Choose up to {MAX_PRODUCT_IMAGES} photos. They are uploaded when you save the
+                product.
+              </p>
+              {pendingImages.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {pendingImages.map((image) => (
+                    <div key={image.id} className="space-y-1">
+                      <div className="aspect-square overflow-hidden bg-secondary">
+                        <img src={image.url} alt="" className="h-full w-full object-cover" />
+                      </div>
+                      <Button
+                        type="button"
+                        variant={image.id === primaryPendingId ? "default" : "outline"}
+                        size="sm"
+                        className="mt-1 h-7 w-full text-[0.65rem] uppercase tracking-wider"
+                        onClick={() => setPrimaryPendingId(image.id)}
+                      >
+                        {image.id === primaryPendingId ? "Main" : "Set main"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 w-full text-[0.65rem] uppercase tracking-wider hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => removePending(image.id)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
             <>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/*"
-                multiple
-                className="mb-4 block w-full text-sm"
-                onChange={(e) => void handleUpload(e.target.files)}
-              />
-              {uploading && <p className="mb-4 text-sm text-muted-foreground">Uploading…</p>}
+              <label className="mb-4 flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed border-border px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary">
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="h-4 w-4" />
+                )}
+                {uploading ? "Uploading…" : "Upload images"}
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  disabled={uploading}
+                  onChange={(e) => void handleUpload(e.target.files)}
+                />
+              </label>
               <div className="grid grid-cols-3 gap-3">
-                {(images.data ?? []).map((image, index) => (
+                {(images.data ?? []).map((image) => (
                   <div key={image.id} className="space-y-1">
                     <div className="aspect-square overflow-hidden bg-secondary">
                       {signed.data?.[image.image_path] ? (
@@ -417,42 +600,24 @@ function ProductEditor() {
                         />
                       ) : null}
                     </div>
-                    <div className="flex items-center justify-between text-[0.65rem] uppercase">
-                      <button
-                        type="button"
-                        aria-label="Move left"
-                        className="text-muted-foreground hover:text-primary"
-                        onClick={() => moveImage.mutate({ index, direction: -1 })}
-                      >
-                        ←
-                      </button>
-                      <button
-                        type="button"
-                        className={
-                          image.is_primary
-                            ? "text-primary"
-                            : "text-muted-foreground hover:text-primary"
-                        }
-                        onClick={() => setPrimary.mutate(image.id)}
-                      >
-                        {image.is_primary ? "Main" : "Set main"}
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Move right"
-                        className="text-muted-foreground hover:text-primary"
-                        onClick={() => moveImage.mutate({ index, direction: 1 })}
-                      >
-                        →
-                      </button>
-                    </div>
-                    <button
+                    <Button
                       type="button"
-                      className="w-full text-[0.65rem] tracking-[0.1em] text-muted-foreground uppercase hover:text-destructive"
+                      variant={image.is_primary ? "default" : "outline"}
+                      size="sm"
+                      className="mt-1 h-7 w-full text-[0.65rem] uppercase tracking-wider"
+                      onClick={() => setPrimary.mutate(image.id)}
+                    >
+                      {image.is_primary ? "Main" : "Set main"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 w-full text-[0.65rem] uppercase tracking-wider hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => removeImage.mutate(image)}
                     >
                       Remove
-                    </button>
+                    </Button>
                   </div>
                 ))}
               </div>

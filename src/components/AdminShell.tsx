@@ -22,7 +22,7 @@ export function AdminShell({ title, children }: { title: string; children: React
             <SidebarTrigger className="text-muted-foreground hover:text-primary" />
             <span className="text-xs tracking-[0.3em] text-muted-foreground uppercase">Admin</span>
           </header>
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10">
+          <main className="mx-auto w-full max-w-[90rem] flex-1 px-4 py-8 lg:py-10">
             <h1 className="mb-8 text-3xl text-primary">{title}</h1>
             {children}
           </main>
