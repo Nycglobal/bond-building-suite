@@ -184,3 +184,10 @@ GRANT EXECUTE ON FUNCTION public.next_order_number() TO service_role;
 ALTER TABLE public.product_images ADD COLUMN IF NOT EXISTS bucket text NOT NULL DEFAULT 'product-images';
 -- ==== 20260816194812_6268b9b7-df78-40b8-a204-ce27df1bd7e6.sql ====
 CREATE POLICY "signed in read images bucket" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'images');
+-- ==== 20260818120000_93d72af3-5758-4ad6-b0ab-fa0aa0a335ea.sql (RLS hardening) ====
+-- Fix: the `images` bucket holds ALL imported product images
+-- (product_images.bucket = 'images') but had no INSERT/UPDATE/DELETE policies,
+-- so admin image management (e.g. "remove image") failed with 403 under RLS.
+CREATE POLICY "admins write images bucket" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'images' AND public.has_role(auth.uid(),'admin'));
+CREATE POLICY "admins update images bucket" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'images' AND public.has_role(auth.uid(),'admin'));
+CREATE POLICY "admins delete images bucket" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'images' AND public.has_role(auth.uid(),'admin'));
