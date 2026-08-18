@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { CustomerShell } from "@/components/CustomerShell";
+import { ProductImage } from "@/components/ProductImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -45,7 +47,7 @@ function MyOrderPage() {
     phone: "",
     notes: "",
   });
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  const [result, setResult] = useState<{ orderNumber: string; emailed: boolean } | null>(null);
 
   useEffect(() => {
     if (!account?.customer) return;
@@ -114,8 +116,8 @@ function MyOrderPage() {
 
   const submit = useMutation({
     mutationFn: async () => submitOrder({ data: form }),
-    onSuccess: (result) => {
-      setSubmitted(result.orderNumber);
+    onSuccess: (submitResult) => {
+      setResult(submitResult);
       void queryClient.invalidateQueries({ queryKey: ["cart"] });
       void queryClient.invalidateQueries({ queryKey: ["cart-count"] });
     },
@@ -123,17 +125,38 @@ function MyOrderPage() {
       toast.error(error instanceof Error ? error.message : "Could not submit your order"),
   });
 
-  if (submitted) {
+  if (result) {
     return (
       <CustomerShell>
         <div className="mx-auto max-w-lg border border-border p-10 text-center">
           <h1 className="text-2xl text-primary">Order Submitted</h1>
           <p className="mt-4 text-sm text-muted-foreground">
-            Thank you. Your catalog order <strong className="text-primary">{submitted}</strong> has
-            been sent to Jewel Brillance NYC. Our team will contact you shortly.
+            Thank you. Your catalog order{" "}
+            <strong className="text-primary">{result.orderNumber}</strong> has been sent to Jewel
+            Brillance NYC. Our team will contact you shortly.
           </p>
+          {result.emailed ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              A confirmation email was sent to{" "}
+              <strong className="text-primary">{form.email}</strong>.
+            </p>
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Note: email delivery is not configured on this project yet, but your order has been
+              received.
+            </p>
+          )}
           <Button asChild className="mt-8">
-            <Link to="/catalog" search={{ category: undefined, q: undefined }}>
+            <Link
+              to="/catalog"
+              search={{
+                category: undefined,
+                q: undefined,
+                ringFilter: undefined,
+                trending: undefined,
+                labGrown: undefined,
+              }}
+            >
               Continue Browsing
             </Link>
           </Button>
@@ -144,7 +167,15 @@ function MyOrderPage() {
 
   return (
     <CustomerShell>
-      <h1 className="mb-8 text-3xl text-primary">My Catalog Order</h1>
+      <div className="mb-6 flex items-center justify-between gap-4 print:hidden">
+        <h1 className="text-3xl text-primary">My Catalog Order</h1>
+        {rows.length > 0 && (
+          <Button type="button" variant="outline" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />
+            Print Order
+          </Button>
+        )}
+      </div>
 
       {cart.isLoading ? (
         <div className="h-40 animate-pulse bg-secondary" />
@@ -152,156 +183,262 @@ function MyOrderPage() {
         <div className="border border-border py-20 text-center">
           <p className="text-sm text-muted-foreground">Your catalog order is empty.</p>
           <Button asChild variant="outline" className="mt-6">
-            <Link to="/catalog" search={{ category: undefined, q: undefined }}>
+            <Link
+              to="/catalog"
+              search={{
+                category: undefined,
+                q: undefined,
+                ringFilter: undefined,
+                trending: undefined,
+                labGrown: undefined,
+              }}
+            >
               Browse the collection
             </Link>
           </Button>
         </div>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr]">
-          <div className="divide-y divide-border border-y border-border">
-            {rows.map((row) => {
-              const images = [...(row.product?.product_images ?? [])].sort(
-                (a, b) =>
-                  Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
-              );
-              const url = images[0] ? signed.data?.[images[0].image_path] : undefined;
-              return (
-                <div key={row.id} className="flex gap-4 py-5">
-                  <div className="h-24 w-24 flex-shrink-0 overflow-hidden bg-secondary">
-                    {url ? (
-                      <img
+        <>
+          <div className="grid gap-10 lg:grid-cols-[1.6fr_1fr] print:hidden">
+            <div className="divide-y divide-border border-y border-border">
+              {rows.map((row) => {
+                const images = [...(row.product?.product_images ?? [])].sort(
+                  (a, b) =>
+                    Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
+                );
+                const url = images[0] ? signed.data?.[images[0].image_path] : undefined;
+                return (
+                  <div key={row.id} className="flex gap-4 py-5">
+                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden bg-secondary">
+                      <ProductImage
                         src={url}
                         alt={row.product?.product_name ?? ""}
-                        className="h-full w-full object-cover"
+                        urlLoading={signed.isLoading}
                       />
-                    ) : null}
-                  </div>
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div>
-                      <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
-                        {row.product?.style_number}
-                      </p>
-                      <p className="text-base text-primary">{row.product?.product_name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatPrice(row.product?.wholesale_price)} each
-                      </p>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Input
-                        type="number"
-                        min={1}
-                        max={999}
-                        className="w-24"
-                        aria-label="Quantity"
-                        value={row.quantity}
-                        onChange={(e) =>
-                          updateQuantity.mutate({
-                            id: row.id,
-                            quantity: Math.max(1, Math.min(999, Number(e.target.value))),
-                          })
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="text-xs tracking-[0.15em] text-muted-foreground uppercase hover:text-destructive"
-                        onClick={() => removeItem.mutate(row.id)}
-                      >
-                        Remove
-                      </button>
+                    <div className="flex flex-1 flex-col justify-between">
+                      <div>
+                        <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
+                          {row.product?.style_number}
+                        </p>
+                        <p className="text-base text-primary">{row.product?.product_name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatPrice(row.product?.wholesale_price)} each
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={999}
+                          className="w-24"
+                          aria-label="Quantity"
+                          value={row.quantity}
+                          onChange={(e) =>
+                            updateQuantity.mutate({
+                              id: row.id,
+                              quantity: Math.max(1, Math.min(999, Number(e.target.value))),
+                            })
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="border border-border/60 uppercase tracking-[0.15em] hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => removeItem.mutate(row.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-primary">
+                      {formatPrice(row.quantity * Number(row.product?.wholesale_price ?? 0))}
                     </div>
                   </div>
-                  <div className="text-right text-sm text-primary">
-                    {formatPrice(row.quantity * Number(row.product?.wholesale_price ?? 0))}
-                  </div>
+                );
+              })}
+            </div>
+
+            <div className="h-fit border border-border p-6">
+              <h2 className="text-lg text-primary">Order Summary</h2>
+              <dl className="mt-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Total styles</dt>
+                  <dd>{rows.length}</dd>
                 </div>
-              );
-            })}
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Total quantity</dt>
+                  <dd>{totalQuantity}</dd>
+                </div>
+                <div className="flex justify-between border-t border-border pt-2">
+                  <dt className="text-muted-foreground">Estimated total</dt>
+                  <dd className="text-primary">{formatPrice(totalValue)}</dd>
+                </div>
+              </dl>
+
+              <form
+                className="mt-6 space-y-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submit.mutate();
+                }}
+              >
+                <div className="space-y-2">
+                  <Label htmlFor="customer_name">Customer name</Label>
+                  <Input
+                    id="customer_name"
+                    required
+                    maxLength={120}
+                    value={form.customer_name}
+                    onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company_name">Company name</Label>
+                  <Input
+                    id="company_name"
+                    required
+                    maxLength={120}
+                    value={form.company_name}
+                    onChange={(e) => setForm({ ...form, company_name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    required
+                    maxLength={255}
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    maxLength={40}
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes (optional)</Label>
+                  <Textarea
+                    id="notes"
+                    maxLength={2000}
+                    rows={3}
+                    value={form.notes}
+                    onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={submit.isPending}>
+                  {submit.isPending ? "Submitting…" : "Submit Catalog Order"}
+                </Button>
+                <p className="text-center text-xs text-muted-foreground">
+                  No payment is taken. This sends your selection to Jewel Brillance NYC.
+                </p>
+              </form>
+            </div>
           </div>
 
-          <div className="h-fit border border-border p-6">
-            <h2 className="text-lg text-primary">Order Summary</h2>
-            <dl className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Total styles</dt>
-                <dd>{rows.length}</dd>
+          {/* Printable catalog order document (only visible when printing). */}
+          <div className="hidden print:block">
+            <div className="flex items-end justify-between border-b-2 border-primary pb-4">
+              <div>
+                <h1 className="text-2xl uppercase tracking-[0.12em] text-primary">
+                  Jewel Brillance NYC
+                </h1>
+                <p className="mt-1 text-xs tracking-[0.3em] text-muted-foreground uppercase">
+                  Wholesale Catalog Order
+                </p>
               </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Total quantity</dt>
-                <dd>{totalQuantity}</dd>
-              </div>
-              <div className="flex justify-between border-t border-border pt-2">
-                <dt className="text-muted-foreground">Estimated total</dt>
-                <dd className="text-primary">{formatPrice(totalValue)}</dd>
-              </div>
-            </dl>
-
-            <form
-              className="mt-6 space-y-4"
-              onSubmit={(event) => {
-                event.preventDefault();
-                submit.mutate();
-              }}
-            >
-              <div className="space-y-2">
-                <Label htmlFor="customer_name">Customer name</Label>
-                <Input
-                  id="customer_name"
-                  required
-                  maxLength={120}
-                  value={form.customer_name}
-                  onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="company_name">Company name</Label>
-                <Input
-                  id="company_name"
-                  required
-                  maxLength={120}
-                  value={form.company_name}
-                  onChange={(e) => setForm({ ...form, company_name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  maxLength={255}
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  maxLength={40}
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optional)</Label>
-                <Textarea
-                  id="notes"
-                  maxLength={2000}
-                  rows={3}
-                  value={form.notes}
-                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={submit.isPending}>
-                {submit.isPending ? "Submitting…" : "Submit Catalog Order"}
-              </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                No payment is taken. This sends your selection to Jewel Brillance NYC.
+              <p className="text-sm text-muted-foreground">
+                {new Date().toLocaleDateString(undefined, {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </p>
-            </form>
+            </div>
+
+            <div className="mt-6 grid grid-cols-2 gap-8 text-sm">
+              <div className="space-y-1">
+                <p>
+                  <span className="text-muted-foreground">Customer: </span>
+                  <span className="font-medium text-primary">{form.customer_name}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Company: </span>
+                  <span className="font-medium text-primary">{form.company_name}</span>
+                </p>
+                <p>
+                  <span className="text-muted-foreground">Email: </span>
+                  <span className="font-medium text-primary">{form.email}</span>
+                </p>
+                {form.phone && (
+                  <p>
+                    <span className="text-muted-foreground">Phone: </span>
+                    <span className="font-medium text-primary">{form.phone}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <table className="mt-6 w-full border-collapse text-sm">
+              <thead>
+                <tr className="border-b-2 border-primary text-left">
+                  <th className="py-2 pr-4 font-medium">Style #</th>
+                  <th className="py-2 pr-4 font-medium">Product</th>
+                  <th className="py-2 pr-4 text-right font-medium">Qty</th>
+                  <th className="py-2 pr-4 text-right font-medium">Wholesale</th>
+                  <th className="py-2 text-right font-medium">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id} className="border-b border-border">
+                    <td className="py-2 pr-4">{row.product?.style_number}</td>
+                    <td className="py-2 pr-4">{row.product?.product_name}</td>
+                    <td className="py-2 pr-4 text-right">{row.quantity}</td>
+                    <td className="py-2 pr-4 text-right">
+                      {formatPrice(row.product?.wholesale_price)}
+                    </td>
+                    <td className="py-2 text-right">
+                      {formatPrice(row.quantity * Number(row.product?.wholesale_price ?? 0))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="mt-4 flex items-end justify-between text-sm">
+              <div className="space-y-1 text-muted-foreground">
+                <p>
+                  Total styles: <span className="font-medium text-primary">{rows.length}</span>
+                </p>
+                <p>
+                  Total quantity: <span className="font-medium text-primary">{totalQuantity}</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
+                  Estimated total
+                </p>
+                <p className="text-xl text-primary">{formatPrice(totalValue)}</p>
+              </div>
+            </div>
+
+            {form.notes && (
+              <div className="mt-6 border-t border-border pt-4 text-sm">
+                <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">Notes</p>
+                <p className="mt-1 whitespace-pre-wrap text-primary">{form.notes}</p>
+              </div>
+            )}
           </div>
-        </div>
+        </>
       )}
     </CustomerShell>
   );

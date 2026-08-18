@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 import { CustomerShell } from "@/components/CustomerShell";
+import { ProductImage } from "@/components/ProductImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,7 +133,13 @@ function ProductPage() {
     <CustomerShell>
       <Link
         to="/catalog"
-        search={{ category: undefined, q: undefined }}
+        search={{
+          category: undefined,
+          q: undefined,
+          ringFilter: undefined,
+          trending: undefined,
+          labGrown: undefined,
+        }}
         className="mb-8 inline-block text-xs tracking-[0.2em] text-muted-foreground uppercase hover:text-primary"
       >
         ← Back to catalog
@@ -139,17 +147,34 @@ function ProductPage() {
 
       <div className="grid gap-12 lg:grid-cols-2">
         <div>
-          <div className="aspect-square overflow-hidden bg-secondary">
-            {current && signed.data?.[current.image_path] ? (
-              <img
-                src={signed.data[current.image_path]}
-                alt={`${item.product_name} — view ${index + 1}`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                No image
-              </div>
+          <div className="relative aspect-square overflow-hidden bg-secondary ring-1 ring-border/70">
+            <ProductImage
+              src={current ? signed.data?.[current.image_path] : undefined}
+              alt={`${item.product_name} — view ${index + 1}`}
+              urlLoading={signed.isLoading}
+            />
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous image"
+                  onClick={() => setIndex((i) => (i - 1 + images.length) % images.length)}
+                  className="absolute left-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-primary shadow-sm backdrop-blur-sm transition hover:bg-background hover:text-primary"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next image"
+                  onClick={() => setIndex((i) => (i + 1) % images.length)}
+                  className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-primary shadow-sm backdrop-blur-sm transition hover:bg-background hover:text-primary"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <span className="absolute bottom-3 right-3 rounded-full border border-border bg-background/80 px-2.5 py-1 text-xs font-medium text-primary backdrop-blur-sm">
+                  {index + 1} / {images.length}
+                </span>
+              </>
             )}
           </div>
           {images.length > 1 && (
@@ -160,19 +185,17 @@ function ProductPage() {
                   type="button"
                   onClick={() => setIndex(i)}
                   aria-label={`View image ${i + 1}`}
-                  className={`h-20 w-20 flex-shrink-0 overflow-hidden border ${
-                    i === index ? "border-accent" : "border-border"
+                  className={`h-20 w-20 flex-shrink-0 overflow-hidden border transition ${
+                    i === index
+                      ? "border-primary ring-2 ring-primary/30"
+                      : "border-border opacity-70 hover:opacity-100"
                   }`}
                 >
-                  {signed.data?.[image.image_path] ? (
-                    <img
-                      src={signed.data[image.image_path]}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="block h-full w-full bg-secondary" />
-                  )}
+                  <ProductImage
+                    src={signed.data?.[image.image_path]}
+                    alt=""
+                    urlLoading={signed.isLoading}
+                  />
                 </button>
               ))}
             </div>

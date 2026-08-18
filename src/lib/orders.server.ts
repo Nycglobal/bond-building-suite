@@ -117,9 +117,11 @@ export function buildOrderEmailHtml(order: {
 }
 
 /**
- * Sends the order notification + customer confirmation when project email is
- * configured. Returns false when no sender is available yet; the order itself
- * is always saved and visible in the admin panel.
+ * Sends the order notification + customer confirmation when an email provider
+ * is configured. Uses Resend's HTTP API when RESEND_API_KEY is set. The order
+ * itself is always saved and visible in the admin panel, even if email is not
+ * configured or delivery fails; the caller can surface the returned boolean to
+ * let the customer know whether a confirmation email went out.
  */
 export async function sendOrderEmails(admin: SupabaseClient, orderId: string) {
   const { data: order } = await admin.from("orders").select("*").eq("id", orderId).maybeSingle();
@@ -133,12 +135,38 @@ export async function sendOrderEmails(admin: SupabaseClient, orderId: string) {
     company: settings.company_name,
   });
 
-  const sender = process.env["LOVABLE_EMAIL_FROM"];
-  if (!sender) {
-    console.info(`Order ${order.order_number} saved. Email sending is not configured yet.`);
+  const apiKey = process.env["RESEND_API_KEY"];
+  if (!apiKey) {
+    console.info(
+      `Order ${order.order_number} saved. Email sending is not configured yet (set RESEND_API_KEY).`,
+    );
     return false;
   }
 
-  console.info(`Order ${order.order_number} email prepared for ${settings.wholesale_email}`);
-  return Boolean(html);
+  const to = [settings.wholesale_email, order.email].filter((address): address is string =>
+    Boolean(address),
+  );
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from:
+        process.env["LOVABLE_EMAIL_FROM"] ?? "Jewel Brillance NYC <orders@jewelbrillancenyc.com>",
+      to,
+      subject: `Wholesale Catalog Order ${order.order_number} — ${order.company_name}`,
+      html,
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`Order ${order.order_number} email failed: ${response.status} ${text}`);
+    return false;
+  }
+
+  console.info(`Order ${order.order_number} email sent to ${to.join(", ")}`);
+  return true;
 }

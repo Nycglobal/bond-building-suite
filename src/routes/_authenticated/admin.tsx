@@ -12,7 +12,17 @@ export const Route = createFileRoute("/_authenticated/admin")({
       .eq("user_id", auth.user.id)
       .eq("role", "admin")
       .maybeSingle();
-    if (!data) throw redirect({ to: "/catalog", search: { category: undefined, q: undefined } });
+    if (!data)
+      throw redirect({
+        to: "/catalog",
+        search: {
+          category: undefined,
+          q: undefined,
+          ringFilter: undefined,
+          trending: undefined,
+          labGrown: undefined,
+        },
+      });
     return { isAdmin: true };
   },
   component: () => <Outlet />,

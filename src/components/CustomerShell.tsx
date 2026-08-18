@@ -50,20 +50,24 @@ export function CustomerShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
-        <CustomerSidebar
-          categories={categories.data ?? []}
-          cartCount={cartCount.data ?? 0}
-          onSignOut={signOut}
-        />
+        <div className="print:hidden">
+          <CustomerSidebar
+            categories={categories.data ?? []}
+            cartCount={cartCount.data ?? 0}
+            onSignOut={signOut}
+          />
+        </div>
         <SidebarInset className="bg-background">
-          <header className="sticky top-0 z-10 flex h-14 items-center justify-between gap-3 border-b border-border bg-background px-4">
+          <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-border bg-background px-4 print:hidden">
             <SidebarTrigger className="text-muted-foreground hover:text-primary" />
             <span className="text-xs tracking-[0.15em] text-muted-foreground uppercase">
               {account?.customer?.company_name ?? ""}
             </span>
           </header>
-          <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">{children}</main>
-          <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
+          <main className="mx-auto w-full max-w-[90rem] flex-1 px-4 py-8 lg:py-10 print:mx-0 print:max-w-none print:p-0">
+            {children}
+          </main>
+          <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground print:hidden">
             © {new Date().getFullYear()} Jewel Brillance NYC · Wholesale only
           </footer>
         </SidebarInset>
