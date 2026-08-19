@@ -46,6 +46,32 @@ export type Database = {
           },
         ]
       }
+      user_sessions: {
+        Row: {
+          session_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          session_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          session_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           active: boolean

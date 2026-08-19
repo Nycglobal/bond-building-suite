@@ -10,6 +10,7 @@ migration/
   scripts/create-users.ts   recreate logins, writes user-map.json
   scripts/copy-storage.ts   copy all storage objects (373 files, ~22 MB)
   scripts/import-data.ts    import table rows with remapped user ids
+  scripts/swap-admin.ts     swap the store admin in a live project
 ```
 
 ## Prerequisites
@@ -53,14 +54,33 @@ catalog's signed URLs break.
 
 ```bash
 TEMP_PASSWORD='ChooseAStrongOne123!' \
-SKIP_EMAILS='smokeadmin@accounts.jewelbrillance.app,smokebuyer@accounts.jewelbrillance.app' \
+SKIP_EMAILS='smokebuyer@accounts.jewelbrillance.app' \
+USER_PASSWORD_labdia2026='Jb1944#' \
 bun migration/scripts/create-users.ts
 ```
 
 Passwords cannot be exported, so each account is recreated with the temporary
-password and pre-confirmed email. `SKIP_EMAILS` above leaves the two leftover
-smoke-test accounts behind — drop it if you want them too. Writes
-`migration/data/user-map.json` (old id -> new id), which the next step needs.
+password and pre-confirmed email. `SKIP_EMAILS` leaves any leftover smoke-test
+accounts behind. Set `USER_PASSWORD_<username>` (e.g.
+`USER_PASSWORD_labdia2026`) to give one account a specific password instead of
+`TEMP_PASSWORD` — this is how the admin login `labdia2026` gets its real
+password. Writes `migration/data/user-map.json` (old id -> new id), which the
+next step needs.
+
+### Swapping the admin in a live project
+
+To remove the old admin and promote a new one without re-running the whole
+migration, use `swap-admin.ts` (idempotent):
+
+```bash
+bun --env-file=.env NEW_ADMIN_PASSWORD='Jb1944#' migration/scripts/swap-admin.ts
+```
+
+It deletes the old admin auth user (default `smokeadmin@accounts.jewelbrillance.app`)
+plus its `user_roles` rows, creates/updates `labdia2026@accounts.jewelbrillance.app`
+with the given password, and grants the `admin` role. Set
+`NEW_ADMIN_SOURCE_ID='48f9b8e3-6599-4ecf-84f9-d68a15644324'` to also record the
+mapping in `user-map.json`.
 
 ## Step 4 — table data
 

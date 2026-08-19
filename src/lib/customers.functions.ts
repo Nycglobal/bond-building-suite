@@ -1,8 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { usernameToEmail } from "@/lib/account";
+import {
+  requireSupabaseAuth,
+  requireSupabaseAuthForRegistration,
+} from "@/integrations/supabase/auth-middleware";
+import { SESSION_TAKEN_MESSAGE, usernameToEmail } from "@/lib/account";
 
 const usernameSchema = z
   .string()
@@ -196,3 +199,38 @@ export const createFirstAdmin = createServerFn({ method: "POST" })
     }
     return { ok: true };
   });
+
+/**
+ * Registers the current sign-in's session as the account's active session.
+ * Called immediately after a successful login. Uses the registration-only
+ * middleware (no single-session check) so the newest login always wins.
+ */
+export const registerSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuthForRegistration])
+  .handler(async ({ context }) => {
+    const { getAdminClient } = await import("@/lib/admin.server");
+    const admin = await getAdminClient();
+
+    const sessionId = context.claims["session_id"] as string | undefined;
+    if (!sessionId) return { ok: true };
+
+    const { error } = await admin.from("user_sessions").upsert(
+      {
+        user_id: context.userId,
+        session_id: sessionId,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
+ * Confirms the current token is still the account's active session.
+ * Throws SESSION_TAKEN_MESSAGE when the login is being used elsewhere, which
+ * the client uses to sign the stale session out.
+ */
+export const assertActiveSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => ({ ok: true, message: SESSION_TAKEN_MESSAGE }));

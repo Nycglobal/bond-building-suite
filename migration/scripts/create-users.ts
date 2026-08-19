@@ -8,6 +8,10 @@
  *     bun migration/scripts/create-users.ts
  *
  * Optional: SKIP_EMAILS='smokeadmin@...,smokebuyer@...' to leave test accounts behind.
+ *
+ * Per-account password override: set USER_PASSWORD_<USERNAME> (e.g.
+ * USER_PASSWORD_labdia2026='Jb1944#') to give one account a specific password
+ * instead of TEMP_PASSWORD. Keeps real passwords out of the repo.
  */
 import { createClient } from "@supabase/supabase-js";
 
@@ -17,6 +21,12 @@ const TEMP_PASSWORD = process.env["TEMP_PASSWORD"];
 if (!DST_URL || !DST_KEY) throw new Error("Missing TARGET_SUPABASE_URL / TARGET_SERVICE_ROLE_KEY");
 if (!TEMP_PASSWORD || TEMP_PASSWORD.length < 10)
   throw new Error("Set TEMP_PASSWORD to at least 10 characters");
+
+/** Password for a specific account: USER_PASSWORD_<username> wins, else TEMP_PASSWORD. */
+function passwordFor(email: string): string {
+  const username = email.split("@")[0].toUpperCase();
+  return process.env[`USER_PASSWORD_${username}`] ?? TEMP_PASSWORD;
+}
 
 const skip = new Set(
   (process.env["SKIP_EMAILS"] ?? "")
@@ -54,7 +64,7 @@ for (const user of users) {
   }
   const { data, error } = await dst.auth.admin.createUser({
     email: user.email,
-    password: TEMP_PASSWORD,
+    password: passwordFor(user.email),
     email_confirm: true,
     user_metadata: user.meta ?? {},
   });

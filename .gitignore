@@ -16,6 +16,14 @@ dist-ssr
 .nitro
 *.local
 
+# Local environment & secrets (set these in the hosting dashboard, never commit)
+.env
+.env.*
+!.env.example
+
+# Vercel (project link + Build Output API artifacts)
+.vercel
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

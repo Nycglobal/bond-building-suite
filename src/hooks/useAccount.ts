@@ -2,6 +2,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import { assertActiveSession } from "@/lib/customers.functions";
+import { SESSION_TAKEN_MESSAGE } from "@/lib/account";
 
 export type AccountCustomer = {
   id: string;
@@ -23,6 +25,20 @@ export async function fetchAccount(): Promise<Account | null> {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
   if (!user) return null;
+
+  // Single-session rule: if this login is being used on another device, the
+  // server rejects it and we sign the stale local session out.
+  try {
+    await assertActiveSession();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes(SESSION_TAKEN_MESSAGE)) {
+      await supabase.auth.signOut();
+      return null;
+    }
+    // Any other error (e.g. transient) is ignored; enforcement still applies
+    // on protected server actions.
+  }
 
   const [{ data: roles }, { data: customer }] = await Promise.all([
     supabase.from("user_roles").select("role").eq("user_id", user.id),
