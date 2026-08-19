@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { usernameToEmail } from "@/lib/account";
 import { fetchAccount } from "@/hooks/useAccount";
+import { registerSession } from "@/lib/customers.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -63,6 +64,13 @@ function LoginPage() {
       setBusy(false);
       toast.error("Invalid username or password");
       return;
+    }
+
+    // Register this sign-in as the account's active session (single-session rule).
+    try {
+      await registerSession();
+    } catch {
+      // Registration failure should not block login; enforcement is best-effort.
     }
 
     const account = await fetchAccount();

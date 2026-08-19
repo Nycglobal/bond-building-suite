@@ -172,22 +172,14 @@ CREATE POLICY "signed in read product image files" ON storage.objects FOR SELECT
 CREATE POLICY "admins write product image files" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'product-images' AND public.has_role(auth.uid(),'admin'));
 CREATE POLICY "admins update product image files" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'product-images' AND public.has_role(auth.uid(),'admin'));
 CREATE POLICY "admins delete product image files" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'product-images' AND public.has_role(auth.uid(),'admin'));
--- ==== 20260815082629_dd190b70-9391-4e68-b6b4-700e3fe3a583.sql ====
-REVOKE ALL ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated, service_role;
 
-REVOKE ALL ON FUNCTION public.enforce_image_cap() FROM PUBLIC, anon, authenticated;
-
-REVOKE ALL ON FUNCTION public.next_order_number() FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.next_order_number() TO service_role;
--- ==== 20260816194643_39a1ee92-e36f-48fe-af57-5e94e5adf8bd.sql ====
-ALTER TABLE public.product_images ADD COLUMN IF NOT EXISTS bucket text NOT NULL DEFAULT 'product-images';
--- ==== 20260816194812_6268b9b7-df78-40b8-a204-ce27df1bd7e6.sql ====
-CREATE POLICY "signed in read images bucket" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'images');
--- ==== 20260818120000_93d72af3-5758-4ad6-b0ab-fa0aa0a335ea.sql (RLS hardening) ====
--- Fix: the `images` bucket holds ALL imported product images
--- (product_images.bucket = 'images') but had no INSERT/UPDATE/DELETE policies,
--- so admin image management (e.g. "remove image") failed with 403 under RLS.
-CREATE POLICY "admins write images bucket" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'images' AND public.has_role(auth.uid(),'admin'));
-CREATE POLICY "admins update images bucket" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'images' AND public.has_role(auth.uid(),'admin'));
-CREATE POLICY "admins delete images bucket" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'images' AND public.has_role(auth.uid(),'admin'));
+-- ==== 20260819120000_d57001cf-21e5-430d-9292-d151ed7cdec1.sql (single active session) ====
+-- Tracks the current JWT session_id per account so shared customer logins can
+-- only be used by one person at a time. Service-role only; no client policies.
+CREATE TABLE IF NOT EXISTS public.user_sessions (
+  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  session_id text NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE public.user_sessions ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.user_sessions TO service_role;

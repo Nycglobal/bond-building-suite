@@ -7,7 +7,7 @@ import { BrandMark } from "@/components/BrandMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { adminExists, createFirstAdmin } from "@/lib/customers.functions";
+import { adminExists, createFirstAdmin, registerSession } from "@/lib/customers.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { usernameToEmail } from "@/lib/account";
 
@@ -48,6 +48,11 @@ function SetupPage() {
         email: usernameToEmail(username),
         password,
       });
+      try {
+        await registerSession();
+      } catch {
+        // Admin accounts are exempt from the single-session rule anyway.
+      }
       toast.success("Administrator account created");
       void navigate({ to: "/admin" });
     } catch (error) {

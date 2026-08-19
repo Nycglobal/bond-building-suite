@@ -17,7 +17,6 @@ for (const [key, value] of Object.entries(env)) {
 }
 
 if (process.env["NODE_ENV"] === "development") {
-  // eslint-disable-next-line no-console
   console.log(
     `[vite.config] Supabase project: ${process.env["VITE_SUPABASE_PROJECT_ID"] ?? "not set"}`,
   );
@@ -29,4 +28,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Build for Vercel (Nitro's `vercel` preset emits `.vercel/output` for the
+  // Build Output API). Note: Lovable's own sandbox still forces
+  // `cloudflare-module`, so pushing to Lovable keeps working unchanged.
+  nitro: { preset: "vercel" },
 });
