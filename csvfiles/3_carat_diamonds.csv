@@ -1,0 +1,57 @@
+page,category,item_number,carat_weight,shape,cut_style,color_grade,clarity_grade,report_number,image_path
+1,3 Carat,93,3.01,Oval,Modified,Fancy Vivid Green,VS2,LG680559102,3_carat_images/page_001.png
+2,3 Carat,148,3.05,Square Cushion,Modified,Fancy Vivid Green,VS1,LG783632906,3_carat_images/page_002.png
+3,3 Carat,106,3.03,Square Cushion,Modified,Fancy Vivid Green,VS1,LG739501172,3_carat_images/page_003.png
+4,3 Carat,105,3.06,Marquise,Brilliant,Fancy Vivid Green,VS2,LG766624265,3_carat_images/page_004.png
+5,3 Carat,146,3.02,Pear,Modified,Fancy Vivid Green,VS1,LG801682623,3_carat_images/page_005.png
+6,3 Carat,112,2.51,Pear,Modified,Fancy Vivid Green,VS1,LG805637969,3_carat_images/page_006.png
+7,3 Carat,139,3.05,Pear,Modified,Fancy Vivid Green,VS1,LG803647340,3_carat_images/page_007.png
+8,3 Carat,,,Pear,Brilliant,Fancy Vivid Green,VS2,LG792667172,3_carat_images/page_008.png
+9,3 Carat,28,3.01,Cushion,Modified,Fancy Vivid Blue,VVS2,LG747511192,3_carat_images/page_009.png
+10,3 Carat,71,3.08,Cushion,Modified,Fancy Vivid Blue,VS2,LG747507832,3_carat_images/page_010.png
+11,3 Carat,143,3.02,Cushion,Modified,Fancy Vivid Blue,VS2,LG792668397,3_carat_images/page_011.png
+12,3 Carat,133,3.01,Cushion,Modified,Fancy Vivid Blue,VVS2,LG776632108,3_carat_images/page_012.png
+13,3 Carat,,,Cushion,Modified,Fancy Vivid Blue,VS2,LG747530661,3_carat_images/page_013.png
+14,3 Carat,136,3.02,Cushion,Modified,Fancy Vivid Blue,VS2,LG778614533,3_carat_images/page_014.png
+15,3 Carat,,,Cushion,Modified,Fancy Vivid Blue,VVS2,LG803628048,3_carat_images/page_015.png
+16,3 Carat,120,3.03,Cushion,Modified,Fancy Vivid Blue,VS2,LG797649969,3_carat_images/page_016.png
+17,3 Carat,122,3.03,Cushion,Modified,Fancy Vivid Blue,VS2,LG785614651,3_carat_images/page_017.png
+18,3 Carat,123,3.01,Square Cushion,Modified,Fancy Vivid Blue,VS1,LG801685295,3_carat_images/page_018.png
+19,3 Carat,,,Cushion,Modified,Fancy Vivid Blue,VS1,LG779604541,3_carat_images/page_019.png
+20,3 Carat,36,3.08,Pear,Modified,Fancy Vivid Blue,VS1,LG792693929,3_carat_images/page_020.png
+21,3 Carat,37,3.09,Pear,Modified,Fancy Vivid Blue,VVS2,LG805634445,3_carat_images/page_021.png
+22,3 Carat,65,3.05,Pear,Brilliant,Fancy Vivid Blue,VS1,LG805640441,3_carat_images/page_022.png
+23,3 Carat,25,3.03,Pear,Brilliant,Fancy Vivid Blue,VS1,LG781606926,3_carat_images/page_023.png
+24,3 Carat,,3.02,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG781606922,3_carat_images/page_024.png
+25,3 Carat,10,3.06,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG761560094,3_carat_images/page_025.png
+26,3 Carat,9,3.09,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG768643434,3_carat_images/page_026.png
+27,3 Carat,13,3.05,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG768643392,3_carat_images/page_027.png
+28,3 Carat,,,Oval,Brilliant,Fancy Vivid Blue,VS1,LG759505197,3_carat_images/page_028.png
+29,3 Carat,15,3.05,Oval,Brilliant,Fancy Vivid Blue,VS1,LG799618695,3_carat_images/page_029.png
+30,3 Carat,,3.01,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG781606921,3_carat_images/page_030.png
+31,3 Carat,,3.03,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG788625376,3_carat_images/page_031.png
+32,3 Carat,,3.02,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG768643391,3_carat_images/page_032.png
+33,3 Carat,,,Oval,Brilliant,Fancy Vivid Blue,VS1,LG803616786,3_carat_images/page_033.png
+34,3 Carat,74,3.15,Oval,Brilliant,Fancy Vivid Blue,VS1,LG720557167,3_carat_images/page_034.png
+35,3 Carat,73,3.01,Oval,Brilliant,Fancy Vivid Blue,VS2,LG805640440,3_carat_images/page_035.png
+36,3 Carat,134,3.02,Marquise,Brilliant,Fancy Vivid Blue,VS1,LG800630938,3_carat_images/page_036.png
+37,3 Carat,110,3.01,Marquise,Brilliant,Fancy Vivid Blue,VS2,LG793637379,3_carat_images/page_037.png
+38,3 Carat,107,3.01,Marquise,Brilliant,Fancy Vivid Blue,VS1,LG766656263,3_carat_images/page_038.png
+39,3 Carat,,,Cushion,Modified,Fancy Vivid Pink,VS1,LG692553263,3_carat_images/page_039.png
+40,3 Carat,,,Cushion,Modified,Fancy Vivid Pink,VS2,LG773618374,3_carat_images/page_040.png
+41,3 Carat,39,3.02,Pear,Modified,Fancy Vivid Pink,VS2,LG792698542,3_carat_images/page_041.png
+42,3 Carat,11,3.08,Oval,Modified,Fancy Vivid Pink,VVS2,LG788629874,3_carat_images/page_042.png
+43,3 Carat,,,Oval,Brilliant,Fancy Vivid Pink,VVS2,LG749574461,3_carat_images/page_043.png
+44,3 Carat,72,3.02,Oval,Brilliant,Fancy Vivid Pink,VS1,LG794684279,3_carat_images/page_044.png
+45,3 Carat,38,3.05,Oval,Brilliant,Fancy Vivid Pink,VS1,LG778699939,3_carat_images/page_045.png
+46,3 Carat,58,3.01,Oval,Brilliant,Fancy Vivid Pink,VS1,LG776631093,3_carat_images/page_046.png
+47,3 Carat,,,Oval,Brilliant,Fancy Vivid Pink,VVS2,LG800623391,3_carat_images/page_047.png
+48,3 Carat,,,Oval,Brilliant,Fancy Vivid Pink,VS1,LG794684277,3_carat_images/page_048.png
+49,3 Carat,40,3.01,Marquise,Brilliant,,,LG764692521,3_carat_images/page_049.png
+50,3 Carat,96,3.03,Marquise,Modified,Fancy Vivid Pink,VVS2,LG797639284,3_carat_images/page_050.png
+51,3 Carat,95,3.07,Marquise,Modified,Fancy Vivid Pink,VS1,LG801684561,3_carat_images/page_051.png
+52,3 Carat,,,Marquise,,Fancy Vivid Pink,VS1,LG775629571,3_carat_images/page_052.png
+53,3 Carat,111,3.06,Marquise,,Fancy Vivid Pink,VS1,LG805634307,3_carat_images/page_053.png
+54,3 Carat,109,3.02,Marquise,,Fancy Vivid Pink,VS1,LG761541569,3_carat_images/page_054.png
+55,3 Carat,,,Marquise,,,,LG797637531,3_carat_images/page_055.png
+56,3 Carat,94,3.05,Marquise,Brilliant,Fancy Vivid Pink,VVS2,LG780619315,3_carat_images/page_056.png

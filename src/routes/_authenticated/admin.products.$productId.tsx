@@ -50,6 +50,7 @@ export const Route = createFileRoute("/_authenticated/admin/products/$productId"
 
 const emptyForm = {
   category_id: "",
+  subcategory_id: "",
   style_number: "",
   product_name: "",
   description: "",
@@ -130,6 +131,20 @@ function ProductEditor() {
     },
   });
 
+  const subcategories = useQuery({
+    queryKey: ["admin-subcategories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("subcategories")
+        .select("id, category_id, name, display_order")
+        .eq("active", true)
+        .order("display_order")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
   const product = useQuery({
     queryKey: ["admin-product", productId],
     enabled: !isNew,
@@ -164,6 +179,7 @@ function ProductEditor() {
     if (!product.data) return;
     setForm({
       category_id: product.data.category_id ?? "",
+      subcategory_id: product.data.subcategory_id ?? "",
       style_number: product.data.style_number,
       product_name: product.data.product_name,
       description: product.data.description ?? "",
@@ -179,6 +195,7 @@ function ProductEditor() {
     mutationFn: async () => {
       const payload = {
         category_id: form.category_id || null,
+        subcategory_id: form.subcategory_id || null,
         style_number: form.style_number.trim(),
         product_name: form.product_name.trim(),
         description: form.description.trim() || null,
@@ -394,7 +411,9 @@ function ProductEditor() {
               <Label htmlFor="category">Category</Label>
               <Select
                 value={form.category_id}
-                onValueChange={(value) => setForm({ ...form, category_id: value })}
+                onValueChange={(value) =>
+                  setForm({ ...form, category_id: value, subcategory_id: "" })
+                }
               >
                 <SelectTrigger id="category">
                   <SelectValue placeholder="Select category" />
@@ -405,6 +424,29 @@ function ProductEditor() {
                       {category.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="subcategory">Subcategory</Label>
+              <Select
+                value={form.subcategory_id || "none"}
+                onValueChange={(value) =>
+                  setForm({ ...form, subcategory_id: value === "none" ? "" : value })
+                }
+              >
+                <SelectTrigger id="subcategory">
+                  <SelectValue placeholder="No subcategory" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No subcategory</SelectItem>
+                  {(subcategories.data ?? [])
+                    .filter((subcategory) => subcategory.category_id === form.category_id)
+                    .map((subcategory) => (
+                      <SelectItem key={subcategory.id} value={subcategory.id}>
+                        {subcategory.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

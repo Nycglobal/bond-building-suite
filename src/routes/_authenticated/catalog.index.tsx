@@ -22,11 +22,14 @@ import { cn } from "@/lib/utils";
 
 type CatalogSearch = {
   category: string | undefined;
+  subcategory: string | undefined;
   q: string | undefined;
   ringFilter: string | undefined;
   trending: boolean | undefined;
   labGrown: boolean | undefined;
 };
+
+const EARRINGS_CATEGORY_ID = "a212b86c-4492-40e5-bdd4-ed2e4df8a15c";
 
 /** Per-category filter tabs. The first ("All") resets the filter; the rest are
  *  applied on top of the active category and the search term. */
@@ -39,13 +42,11 @@ const CATEGORY_FILTERS: Record<string, { id: string; label: string }[]> = {
   ],
   Bracelets: [
     { id: "diamond", label: "Diamond Bracelets" },
-    { id: "plain-gold", label: "Plain Gold Bracelets" },
     { id: "gemstone", label: "Gemstone Bracelets" },
     { id: "bangles", label: "Bangles" },
   ],
   Earrings: [
     { id: "diamond", label: "Diamond Earrings" },
-    { id: "plain-gold", label: "Plain Gold Earrings" },
     { id: "gemstone", label: "Gemstone Earrings" },
     { id: "piercings", label: "Piercings" },
   ],
@@ -69,7 +70,7 @@ const TRENDING_FILTERS = [
 const LAB_GROWN_FILTERS: { id: string; label: string; categoryId: string }[] = [
   { id: "rings", label: "Rings", categoryId: "db6c1361-5036-4d1e-9838-3c18a718c39f" },
   { id: "necklaces", label: "Necklaces", categoryId: "d3605570-aac6-425f-adbf-74e2d5997ffe" },
-  { id: "earrings", label: "Earrings", categoryId: "a212b86c-4492-40e5-bdd4-ed2e4df8a15c" },
+  { id: "earrings", label: "Earrings", categoryId: EARRINGS_CATEGORY_ID },
   { id: "bracelets", label: "Bracelets", categoryId: "da136319-f20e-40be-8231-3c9e2c01bdb8" },
 ];
 
@@ -89,6 +90,7 @@ type SortKey = (typeof SORT_OPTIONS)[number]["value"];
 export const Route = createFileRoute("/_authenticated/catalog/")({
   validateSearch: (search: Record<string, unknown>): CatalogSearch => ({
     category: typeof search["category"] === "string" ? search["category"] : undefined,
+    subcategory: typeof search["subcategory"] === "string" ? search["subcategory"] : undefined,
     q: typeof search["q"] === "string" ? search["q"] : undefined,
     ringFilter: typeof search["ringFilter"] === "string" ? search["ringFilter"] : undefined,
     trending: search["trending"] === true,
@@ -115,7 +117,7 @@ export const Route = createFileRoute("/_authenticated/catalog/")({
 });
 
 function CatalogPage() {
-  const { category, q, ringFilter, trending, labGrown } = Route.useSearch();
+  const { category, subcategory, q, ringFilter, trending, labGrown } = Route.useSearch();
   const navigate = Route.useNavigate();
   const [term, setTerm] = useState(q ?? "");
   const [sort, setSort] = useState<SortKey>("best-selling");
@@ -124,6 +126,9 @@ function CatalogPage() {
   const isLabGrown = labGrown === true;
   const viewKey = isLabGrown ? "lab-grown" : isTrending ? "trending" : (category ?? "all");
   const queryClient = useQueryClient();
+  const selectedSubcategoryName = categories.data
+    ?.find((item) => item.id === category)
+    ?.subcategories.find((item) => item.id === subcategory)?.name;
 
   /** Product IDs ticked for the bulk "Add to Catalog" action. */
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -134,7 +139,14 @@ function CatalogPage() {
   }, [viewKey]);
 
   const products = useQuery({
-    queryKey: ["catalog", viewKey, q ?? "", ringFilter ?? "all"],
+    queryKey: [
+      "catalog",
+      viewKey,
+      subcategory ?? "all",
+      selectedSubcategoryName ?? "",
+      q ?? "",
+      ringFilter ?? "all",
+    ],
     queryFn: async () => {
       let query = supabase
         .from("products")
@@ -149,14 +161,26 @@ function CatalogPage() {
         if (lgTab) query = query.eq("category_id", lgTab.categoryId);
       } else if (isTrending) query = query.contains("tags", ["trending"]);
       else if (category) query = query.eq("category_id", category);
+      if (selectedSubcategoryName === "Men's") {
+        query = query.or(
+          "style_number.ilike.AR%,product_name.ilike.%men's%,product_name.ilike.%mens%,product_name.ilike.%unisex%",
+        );
+      } else if (selectedSubcategoryName === "Ladies'") {
+        query = query
+          .not("style_number", "ilike", "AR%")
+          .not("product_name", "ilike", "%men's%")
+          .not("product_name", "ilike", "%mens%")
+          .not("product_name", "ilike", "%unisex%");
+      } else if (subcategory) query = query.eq("subcategory_id", subcategory);
+      if (category === EARRINGS_CATEGORY_ID)
+        query = query.not("tags", "cs", '{"plain-gold-earrings"}');
       if (ringFilter === "diamond") query = query.neq("diamond_type", null);
       else if (ringFilter === "gold") query = query.ilike("product_name", "%gold%");
-      else if (ringFilter === "plain-gold")
+      else if (ringFilter === "plain-gold" && category !== EARRINGS_CATEGORY_ID)
         query = query.overlaps("tags", [
           "plain-gold",
           "plain-gold-bracelets",
           "plain-gold-bangles",
-          "plain-gold-earrings",
         ]);
       else if (ringFilter === "gemstone")
         query = query.or(
@@ -254,11 +278,12 @@ function CatalogPage() {
   const signed = useSignedUrls(primaryPaths);
 
   const activeCategory = categories.data?.find((c) => c.id === category);
+  const activeSubcategory = activeCategory?.subcategories.find((item) => item.id === subcategory);
   const viewTitle = isLabGrown
     ? "Lab Grown Diamond"
     : isTrending
       ? "Trending"
-      : (activeCategory?.name ?? "The Collection");
+      : (activeSubcategory?.name ?? activeCategory?.name ?? "The Collection");
   const tabs = isLabGrown
     ? LAB_GROWN_FILTERS
     : isTrending
@@ -297,7 +322,14 @@ function CatalogPage() {
             onSubmit={(event) => {
               event.preventDefault();
               void navigate({
-                search: { category, q: term.trim() || undefined, ringFilter, trending, labGrown },
+                search: {
+                  category,
+                  subcategory,
+                  q: term.trim() || undefined,
+                  ringFilter,
+                  trending,
+                  labGrown,
+                },
               });
             }}
           >
@@ -335,7 +367,7 @@ function CatalogPage() {
             type="button"
             onClick={() =>
               void navigate({
-                search: { category, q, ringFilter: undefined, trending, labGrown },
+                search: { category, subcategory, q, ringFilter: undefined, trending, labGrown },
               })
             }
             className={cn(
@@ -357,6 +389,7 @@ function CatalogPage() {
                   void navigate({
                     search: {
                       category,
+                      subcategory,
                       q,
                       ringFilter: active ? undefined : filter.id,
                       trending,

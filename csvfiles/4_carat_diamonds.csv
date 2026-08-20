@@ -1,0 +1,25 @@
+page,category,item_number,carat_weight,shape,cut_style,color_grade,clarity_grade,report_number,image_path
+1,Green,53,4.02,Oval,Modified Brilliant,Fancy Vivid Green,VS1,LG791663433,images/page_1_image_1.jpeg
+2,Green,86,4.09,Oval,Brilliant,Fancy Vivid Green,VS2,LG750568225,images/page_2_image_1.jpeg
+3,Green,89,4.00,Oval,Brilliant,Fancy Vivid Green,VS1,LG750568226,images/page_3_image_1.jpeg
+4,Green,49,4.06,Pear,Brilliant,Fancy Vivid Green,VS1,LG737568337,images/page_4_image_1.jpeg
+5,Green,141,4.06,Pear,Brilliant,Fancy Vivid Green,VS2,LG732534450,images/page_5_image_1.jpeg
+6,Green,85,4.02,Pear,Modified,Fancy Vivid Green,VS1,LG737581493,images/page_6_image_1.jpeg
+7,Green,149,4.02,Cushion,Modified,Fancy Vivid Green,VS2,LG801682624,images/page_7_image_1.jpeg
+8,Green,101,4.09,Square Cushion,Modified,Fancy Vivid Green,VS1,LG804624982,images/page_8_image_1.jpeg
+9,Pink,52,4.01,Marquise,Brilliant,Fancy Vivid Pink,VS2,LG729564686,images/page_9_image_1.jpeg
+10,Pink,87,4.09,Marquise,Brilliant,Fancy Vivid Pink,VVS2,LG783614529,images/page_10_image_1.jpeg
+11,Pink,99,4.02,Marquise,Brilliant,Fancy Vivid Pink,VVS2,LG801659079,images/page_11_image_1.jpeg
+12,Pink,4,4.04,Oval,Brilliant,Fancy Vivid Pink,VS1,LG756576125,images/page_12_image_1.jpeg
+13,Pink,48,4.01,Oval,Brilliant,Fancy Vivid Pink,VVS2,LG787609010,images/page_13_image_1.jpeg
+14,Pink,51,4.01,Oval,Brilliant,Fancy Vivid Pink,VVS2,LG782606242,images/page_14_image_1.jpeg
+15,Pink,1,4.15,Oval,Brilliant,Fancy Vivid Pink,VS1,LG772667868,images/page_15_image_1.jpeg
+16,Pink,50,4.02,Square Cushion,Modified,Fancy Vivid Pink,VS1,LG781647162,images/page_16_image_1.jpeg
+17,Blue,100,4.06,Marquise,Brilliant,Fancy Vivid Blue,VS2,LG792694077,images/page_17_image_1.jpeg
+18,Blue,33,4.02,Marquise,Brilliant,Fancy Vivid Blue,VVS2,LG778638707,images/page_18_image_1.jpeg
+19,Blue,135,4.03,Marquise,Brilliant,Fancy Vivid Blue,VS2,LG726510188,images/page_19_image_1.jpeg
+20,Blue,88,4.01,Marquise,Brilliant,Fancy Vivid Blue,VS1,LG793622768,images/page_20_image_1.jpeg
+21,Blue,142,4.05,Square Cushion,Modified,Fancy Vivid Blue,VS2,LG768663252,images/page_21_image_1.jpeg
+22,Blue,47,4.03,Pear,Modified,Fancy Vivid Blue,VS1,LG678505935,images/page_22_image_1.jpeg
+23,Blue,2,4.02,Oval,Brilliant,Fancy Vivid Blue,VVS2,LG761560030,images/page_23_image_1.jpeg
+24,Blue,3,4.06,Oval,Brilliant,Fancy Vivid Blue,VS1,LG772667629,images/page_24_image_1.jpeg

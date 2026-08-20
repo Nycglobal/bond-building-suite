@@ -3,6 +3,7 @@ import {
   Circle,
   CircleDashed,
   CircleDot,
+  ChevronDown,
   Diamond,
   Gem,
   Link as LinkIcon,
@@ -13,6 +14,7 @@ import {
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +32,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-type Category = { id: string; name: string };
+type Category = {
+  id: string;
+  name: string;
+  subcategories: { id: string; name: string }[];
+};
 
 /** Distinct icon per product category. Falls back to Gem for unknown categories. */
 const CATEGORY_ICONS: Record<string, LucideIcon> = {
@@ -134,27 +140,67 @@ export function CustomerSidebar({
               {categories.map((category) => {
                 const CategoryIcon = CATEGORY_ICONS[category.name] ?? Gem;
                 return (
-                  <SidebarMenuItem key={category.id}>
-                    <SidebarMenuButton asChild tooltip={category.name}>
-                      <Link
-                        to="/catalog"
-                        search={{
-                          category: category.id,
-                          q: undefined,
-                          ringFilter: undefined,
-                          trending: undefined,
-                          labGrown: undefined,
-                        }}
-                        activeOptions={{ includeSearch: true }}
-                        activeProps={{
-                          className: "bg-sidebar-accent text-sidebar-primary font-medium",
-                        }}
-                      >
-                        <CategoryIcon className="h-4 w-4" />
-                        <span>{category.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <Collapsible key={category.id} asChild>
+                    <SidebarMenuItem>
+                      <div className="flex items-center">
+                        <SidebarMenuButton asChild tooltip={category.name}>
+                          <Link
+                            to="/catalog"
+                            search={{
+                              category: category.id,
+                              subcategory: undefined,
+                              q: undefined,
+                              ringFilter: undefined,
+                              trending: undefined,
+                              labGrown: undefined,
+                            }}
+                            activeOptions={{ includeSearch: true }}
+                            activeProps={{
+                              className: "bg-sidebar-accent text-sidebar-primary font-medium",
+                            }}
+                          >
+                            <CategoryIcon className="h-4 w-4" />
+                            <span>{category.name}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                        {category.subcategories.length > 0 && (
+                          <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+                              <ChevronDown className="h-4 w-4 transition-transform in-data-[state=open]:rotate-180" />
+                              <span className="sr-only">Toggle {category.name} subcategories</span>
+                            </Button>
+                          </CollapsibleTrigger>
+                        )}
+                      </div>
+                      {category.subcategories.length > 0 && (
+                        <CollapsibleContent>
+                          <div className="ml-8 border-l border-sidebar-border pl-2">
+                            {category.subcategories.map((subcategory) => (
+                              <SidebarMenuButton key={subcategory.id} asChild size="sm">
+                                <Link
+                                  to="/catalog"
+                                  search={{
+                                    category: category.id,
+                                    subcategory: subcategory.id,
+                                    q: undefined,
+                                    ringFilter: undefined,
+                                    trending: undefined,
+                                    labGrown: undefined,
+                                  }}
+                                  activeOptions={{ includeSearch: true }}
+                                  activeProps={{
+                                    className: "text-sidebar-primary font-medium",
+                                  }}
+                                >
+                                  <span>{subcategory.name}</span>
+                                </Link>
+                              </SidebarMenuButton>
+                            ))}
+                          </div>
+                        </CollapsibleContent>
+                      )}
+                    </SidebarMenuItem>
+                  </Collapsible>
                 );
               })}
               <SidebarMenuItem>
