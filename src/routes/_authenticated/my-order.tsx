@@ -66,7 +66,7 @@ function MyOrderPage() {
       const { data, error } = await supabase
         .from("cart_items")
         .select(
-          "id, quantity, product:products(id, style_number, product_name, wholesale_price, category:categories(name), product_images(image_path, image_order, is_primary, bucket))",
+          "id, quantity, product:products(id, style_number, product_name, wholesale_price, category:categories(name), product_images(image_path, image_order, is_primary, bucket)), loose_diamond:loose_diamonds(id, carat_weight, shape, color_grade, clarity_grade, cut_style, image_path, page)",
         )
         .order("created_at");
       if (error) throw error;
@@ -74,13 +74,22 @@ function MyOrderPage() {
     },
   });
 
-  const rows = (cart.data ?? []).filter((row) => row.product);
+  const rows = (cart.data ?? []).filter((row) => row.product || row.loose_diamond);
   const paths = rows
     .map((row) => {
-      const images = [...(row.product?.product_images ?? [])].sort(
-        (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
-      );
-      return images[0];
+      if (row.product) {
+        const images = [...(row.product.product_images ?? [])].sort(
+          (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
+        );
+        return images[0];
+      }
+      if (!row.loose_diamond?.image_path) return undefined;
+      const path =
+        row.loose_diamond.image_path.startsWith("images/") &&
+        Number(row.loose_diamond.carat_weight ?? 0) >= 4
+          ? `images/4_carat_images/page_${String(row.loose_diamond.page ?? 0).padStart(3, "0")}.png`
+          : row.loose_diamond.image_path;
+      return { image_path: path, bucket: "images" };
     })
     .filter((image): image is NonNullable<typeof image> => Boolean(image));
   const signed = useSignedUrls(paths);
@@ -206,22 +215,30 @@ function MyOrderPage() {
                   (a, b) =>
                     Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
                 );
-                const url = images[0] ? signed.data?.[images[0].image_path] : undefined;
+                const loosePath = row.loose_diamond?.image_path
+                  ? row.loose_diamond.image_path.startsWith("images/") &&
+                    Number(row.loose_diamond.carat_weight ?? 0) >= 4
+                    ? `images/4_carat_images/page_${String(row.loose_diamond.page ?? 0).padStart(3, "0")}.png`
+                    : row.loose_diamond.image_path
+                  : undefined;
+                const imagePath = images[0]?.image_path ?? loosePath;
+                const url = imagePath ? signed.data?.[imagePath] : undefined;
+                const name =
+                  row.product?.product_name ??
+                  `${row.loose_diamond?.carat_weight ?? ""} Carat ${row.loose_diamond?.shape ?? "Diamond"}`;
+                const style =
+                  row.product?.style_number ?? row.loose_diamond?.report_number ?? "Loose Diamond";
                 return (
                   <div key={row.id} className="flex gap-4 py-5">
-                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden bg-secondary">
-                      <ProductImage
-                        src={url}
-                        alt={row.product?.product_name ?? ""}
-                        urlLoading={signed.isLoading}
-                      />
+                    <div className="h-24 w-24 shrink-0 overflow-hidden bg-secondary">
+                      <ProductImage src={url} alt={name} urlLoading={signed.isLoading} />
                     </div>
                     <div className="flex flex-1 flex-col justify-between">
                       <div>
                         <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
-                          {row.product?.style_number}
+                          {style}
                         </p>
-                        <p className="text-base text-primary">{row.product?.product_name}</p>
+                        <p className="text-base text-primary">{name}</p>
                         <p className="text-sm text-muted-foreground">
                           {formatPrice(row.product?.wholesale_price)} each
                         </p>

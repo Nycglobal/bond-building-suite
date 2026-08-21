@@ -9,10 +9,20 @@ type CartRow = {
     wholesale_price: number | string;
     category: { name: string } | null;
   } | null;
+  loose_diamond: {
+    id: string;
+    carat_weight: number | null;
+    shape: string | null;
+    color_grade: string | null;
+    clarity_grade: string | null;
+    cut_style: string | null;
+    report_number: string | null;
+  } | null;
 };
 
 export type OrderItemRow = {
-  product_id: string;
+  product_id: string | null;
+  loose_diamond_id: string | null;
   style_number: string;
   product_name: string;
   category_name: string | null;
@@ -28,17 +38,21 @@ export function buildOrderRows(cart: unknown[]) {
 
   for (const raw of cart as CartRow[]) {
     const product = raw.product;
-    if (!product) continue;
+    const diamond = raw.loose_diamond;
+    if (!product && !diamond) continue;
     const quantity = Math.max(1, Math.trunc(raw.quantity ?? 1));
-    const unitPrice = Number(product.wholesale_price ?? 0);
+    const unitPrice = Number(product?.wholesale_price ?? 0);
     const totalPrice = Number((unitPrice * quantity).toFixed(2));
     totalQuantity += quantity;
     totalValue += totalPrice;
     items.push({
-      product_id: product.id,
-      style_number: product.style_number,
-      product_name: product.product_name,
-      category_name: product.category?.name ?? null,
+      product_id: product?.id ?? null,
+      loose_diamond_id: diamond?.id ?? null,
+      style_number: product?.style_number ?? diamond?.report_number ?? "Loose Diamond",
+      product_name:
+        product?.product_name ??
+        `${diamond?.carat_weight ?? ""} Carat ${diamond?.shape ?? "Diamond"}`,
+      category_name: product?.category?.name ?? "Loose Diamond",
       quantity,
       unit_price: unitPrice,
       total_price: totalPrice,

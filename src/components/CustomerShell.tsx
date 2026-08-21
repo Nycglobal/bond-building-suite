@@ -13,12 +13,17 @@ export function useCategories() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name, display_order")
+        .select("id, name, display_order, subcategories(id, name, display_order)")
         .eq("active", true)
         .order("display_order")
         .order("name");
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []).map((category) => ({
+        ...category,
+        subcategories: [...(category.subcategories ?? [])].sort(
+          (a, b) => a.display_order - b.display_order || a.name.localeCompare(b.name),
+        ),
+      }));
     },
   });
 }

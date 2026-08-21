@@ -1,522 +1,620 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
-  }
+    PostgrestVersion: "14.15";
+  };
   public: {
     Tables: {
       cart_items: {
         Row: {
-          created_at: string
-          id: string
-          product_id: string
-          quantity: number
-          user_id: string
-        }
+          created_at: string;
+          id: string;
+          loose_diamond_id: string | null;
+          product_id: string | null;
+          quantity: number;
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          product_id: string
-          quantity?: number
-          user_id: string
-        }
+          created_at?: string;
+          id?: string;
+          loose_diamond_id?: string | null;
+          product_id?: string | null;
+          quantity?: number;
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          product_id?: string
-          quantity?: number
-          user_id?: string
-        }
+          created_at?: string;
+          id?: string;
+          loose_diamond_id?: string | null;
+          product_id?: string | null;
+          quantity?: number;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "cart_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
+            foreignKeyName: "cart_items_loose_diamond_id_fkey";
+            columns: ["loose_diamond_id"];
+            isOneToOne: false;
+            referencedRelation: "loose_diamonds";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+          {
+            foreignKeyName: "cart_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_sessions: {
         Row: {
-          session_id: string
-          updated_at: string
-          user_id: string
-        }
+          session_id: string;
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          session_id: string
-          updated_at?: string
-          user_id: string
-        }
+          session_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          session_id?: string
-          updated_at?: string
-          user_id?: string
-        }
+          session_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "user_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
+            foreignKeyName: "user_sessions_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       categories: {
         Row: {
-          active: boolean
-          created_at: string
-          display_order: number
-          id: string
-          name: string
-        }
+          active: boolean;
+          created_at: string;
+          display_order: number;
+          id: string;
+          name: string;
+        };
         Insert: {
-          active?: boolean
-          created_at?: string
-          display_order?: number
-          id?: string
-          name: string
-        }
+          active?: boolean;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name: string;
+        };
         Update: {
-          active?: boolean
-          created_at?: string
-          display_order?: number
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
+          active?: boolean;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
+      subcategories: {
+        Row: {
+          active: boolean;
+          category_id: string;
+          created_at: string;
+          display_order: number;
+          id: string;
+          name: string;
+        };
+        Insert: {
+          active?: boolean;
+          category_id: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name: string;
+        };
+        Update: {
+          active?: boolean;
+          category_id?: string;
+          created_at?: string;
+          display_order?: number;
+          id?: string;
+          name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "subcategories_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      loose_diamonds: {
+        Row: {
+          carat_weight: number | null;
+          category: string | null;
+          clarity_grade: string | null;
+          color_grade: string | null;
+          created_at: string;
+          cut_style: string | null;
+          id: string;
+          image_path: string | null;
+          item_number: string | null;
+          page: number | null;
+          report_number: string | null;
+          shape: string | null;
+        };
+        Insert: {
+          carat_weight?: number | null;
+          category?: string | null;
+          clarity_grade?: string | null;
+          color_grade?: string | null;
+          created_at?: string;
+          cut_style?: string | null;
+          id?: string;
+          image_path?: string | null;
+          item_number?: string | null;
+          page?: number | null;
+          report_number?: string | null;
+          shape?: string | null;
+        };
+        Update: {
+          carat_weight?: number | null;
+          category?: string | null;
+          clarity_grade?: string | null;
+          color_grade?: string | null;
+          created_at?: string;
+          cut_style?: string | null;
+          id?: string;
+          image_path?: string | null;
+          item_number?: string | null;
+          page?: number | null;
+          report_number?: string | null;
+          shape?: string | null;
+        };
+        Relationships: [];
+      };
       customers: {
         Row: {
-          active: boolean
-          company_name: string
-          created_at: string
-          customer_name: string
-          email: string
-          id: string
-          phone: string | null
-          updated_at: string
-          user_id: string | null
-          username: string
-        }
+          active: boolean;
+          company_name: string;
+          created_at: string;
+          customer_name: string;
+          email: string;
+          id: string;
+          phone: string | null;
+          updated_at: string;
+          user_id: string | null;
+          username: string;
+        };
         Insert: {
-          active?: boolean
-          company_name: string
-          created_at?: string
-          customer_name: string
-          email: string
-          id?: string
-          phone?: string | null
-          updated_at?: string
-          user_id?: string | null
-          username: string
-        }
+          active?: boolean;
+          company_name: string;
+          created_at?: string;
+          customer_name: string;
+          email: string;
+          id?: string;
+          phone?: string | null;
+          updated_at?: string;
+          user_id?: string | null;
+          username: string;
+        };
         Update: {
-          active?: boolean
-          company_name?: string
-          created_at?: string
-          customer_name?: string
-          email?: string
-          id?: string
-          phone?: string | null
-          updated_at?: string
-          user_id?: string | null
-          username?: string
-        }
-        Relationships: []
-      }
+          active?: boolean;
+          company_name?: string;
+          created_at?: string;
+          customer_name?: string;
+          email?: string;
+          id?: string;
+          phone?: string | null;
+          updated_at?: string;
+          user_id?: string | null;
+          username?: string;
+        };
+        Relationships: [];
+      };
       order_items: {
         Row: {
-          category_name: string | null
-          id: string
-          order_id: string
-          product_id: string | null
-          product_name: string
-          quantity: number
-          style_number: string
-          total_price: number
-          unit_price: number
-        }
+          category_name: string | null;
+          id: string;
+          loose_diamond_id: string | null;
+          order_id: string;
+          product_id: string | null;
+          product_name: string;
+          quantity: number;
+          style_number: string;
+          total_price: number;
+          unit_price: number;
+        };
         Insert: {
-          category_name?: string | null
-          id?: string
-          order_id: string
-          product_id?: string | null
-          product_name: string
-          quantity?: number
-          style_number: string
-          total_price?: number
-          unit_price?: number
-        }
+          category_name?: string | null;
+          id?: string;
+          loose_diamond_id?: string | null;
+          order_id: string;
+          product_id?: string | null;
+          product_name: string;
+          quantity?: number;
+          style_number: string;
+          total_price?: number;
+          unit_price?: number;
+        };
         Update: {
-          category_name?: string | null
-          id?: string
-          order_id?: string
-          product_id?: string | null
-          product_name?: string
-          quantity?: number
-          style_number?: string
-          total_price?: number
-          unit_price?: number
-        }
+          category_name?: string | null;
+          id?: string;
+          loose_diamond_id?: string | null;
+          order_id?: string;
+          product_id?: string | null;
+          product_name?: string;
+          quantity?: number;
+          style_number?: string;
+          total_price?: number;
+          unit_price?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "order_items_order_id_fkey"
-            columns: ["order_id"]
-            isOneToOne: false
-            referencedRelation: "orders"
-            referencedColumns: ["id"]
+            foreignKeyName: "order_items_loose_diamond_id_fkey";
+            columns: ["loose_diamond_id"];
+            isOneToOne: false;
+            referencedRelation: "loose_diamonds";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
+            foreignKeyName: "order_items_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+          {
+            foreignKeyName: "order_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       orders: {
         Row: {
-          company_name: string
-          created_at: string
-          customer_id: string | null
-          customer_name: string
-          email: string
-          id: string
-          notes: string | null
-          order_number: string
-          phone: string | null
-          status: string
-          total_quantity: number
-          total_styles: number
-          total_value: number
-          user_id: string | null
-        }
+          company_name: string;
+          created_at: string;
+          customer_id: string | null;
+          customer_name: string;
+          email: string;
+          id: string;
+          notes: string | null;
+          order_number: string;
+          phone: string | null;
+          status: string;
+          total_quantity: number;
+          total_styles: number;
+          total_value: number;
+          user_id: string | null;
+        };
         Insert: {
-          company_name: string
-          created_at?: string
-          customer_id?: string | null
-          customer_name: string
-          email: string
-          id?: string
-          notes?: string | null
-          order_number: string
-          phone?: string | null
-          status?: string
-          total_quantity?: number
-          total_styles?: number
-          total_value?: number
-          user_id?: string | null
-        }
+          company_name: string;
+          created_at?: string;
+          customer_id?: string | null;
+          customer_name: string;
+          email: string;
+          id?: string;
+          notes?: string | null;
+          order_number: string;
+          phone?: string | null;
+          status?: string;
+          total_quantity?: number;
+          total_styles?: number;
+          total_value?: number;
+          user_id?: string | null;
+        };
         Update: {
-          company_name?: string
-          created_at?: string
-          customer_id?: string | null
-          customer_name?: string
-          email?: string
-          id?: string
-          notes?: string | null
-          order_number?: string
-          phone?: string | null
-          status?: string
-          total_quantity?: number
-          total_styles?: number
-          total_value?: number
-          user_id?: string | null
-        }
+          company_name?: string;
+          created_at?: string;
+          customer_id?: string | null;
+          customer_name?: string;
+          email?: string;
+          id?: string;
+          notes?: string | null;
+          order_number?: string;
+          phone?: string | null;
+          status?: string;
+          total_quantity?: number;
+          total_styles?: number;
+          total_value?: number;
+          user_id?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "orders_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
+            foreignKeyName: "orders_customer_id_fkey";
+            columns: ["customer_id"];
+            isOneToOne: false;
+            referencedRelation: "customers";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       product_images: {
         Row: {
-          bucket: string
-          created_at: string
-          id: string
-          image_order: number
-          image_path: string
-          is_primary: boolean
-          product_id: string
-        }
+          bucket: string;
+          created_at: string;
+          id: string;
+          image_order: number;
+          image_path: string;
+          is_primary: boolean;
+          product_id: string;
+        };
         Insert: {
-          bucket?: string
-          created_at?: string
-          id?: string
-          image_order?: number
-          image_path: string
-          is_primary?: boolean
-          product_id: string
-        }
+          bucket?: string;
+          created_at?: string;
+          id?: string;
+          image_order?: number;
+          image_path: string;
+          is_primary?: boolean;
+          product_id: string;
+        };
         Update: {
-          bucket?: string
-          created_at?: string
-          id?: string
-          image_order?: number
-          image_path?: string
-          is_primary?: boolean
-          product_id?: string
-        }
+          bucket?: string;
+          created_at?: string;
+          id?: string;
+          image_order?: number;
+          image_path?: string;
+          is_primary?: boolean;
+          product_id?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "product_images_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
+            foreignKeyName: "product_images_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       products: {
         Row: {
-          active: boolean
-          carat_weight: string | null
-          category_id: string | null
-          created_at: string
-          description: string | null
-          diamond_type: string | null
-          id: string
-          metal: string | null
-          product_name: string
-          style_number: string
-          updated_at: string
-          wholesale_price: number
-        }
+          active: boolean;
+          carat_weight: string | null;
+          category_id: string | null;
+          created_at: string;
+          description: string | null;
+          diamond_type: string | null;
+          id: string;
+          metal: string | null;
+          product_name: string;
+          subcategory_id: string | null;
+          style_number: string;
+          updated_at: string;
+          wholesale_price: number;
+        };
         Insert: {
-          active?: boolean
-          carat_weight?: string | null
-          category_id?: string | null
-          created_at?: string
-          description?: string | null
-          diamond_type?: string | null
-          id?: string
-          metal?: string | null
-          product_name: string
-          style_number: string
-          updated_at?: string
-          wholesale_price?: number
-        }
+          active?: boolean;
+          carat_weight?: string | null;
+          category_id?: string | null;
+          created_at?: string;
+          description?: string | null;
+          diamond_type?: string | null;
+          id?: string;
+          metal?: string | null;
+          product_name: string;
+          subcategory_id?: string | null;
+          style_number: string;
+          updated_at?: string;
+          wholesale_price?: number;
+        };
         Update: {
-          active?: boolean
-          carat_weight?: string | null
-          category_id?: string | null
-          created_at?: string
-          description?: string | null
-          diamond_type?: string | null
-          id?: string
-          metal?: string | null
-          product_name?: string
-          style_number?: string
-          updated_at?: string
-          wholesale_price?: number
-        }
+          active?: boolean;
+          carat_weight?: string | null;
+          category_id?: string | null;
+          created_at?: string;
+          description?: string | null;
+          diamond_type?: string | null;
+          id?: string;
+          metal?: string | null;
+          product_name?: string;
+          subcategory_id?: string | null;
+          style_number?: string;
+          updated_at?: string;
+          wholesale_price?: number;
+        };
         Relationships: [
           {
-            foreignKeyName: "products_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
+            foreignKeyName: "products_category_id_fkey";
+            columns: ["category_id"];
+            isOneToOne: false;
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+          {
+            foreignKeyName: "products_subcategory_id_fkey";
+            columns: ["subcategory_id"];
+            isOneToOne: false;
+            referencedRelation: "subcategories";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       settings: {
         Row: {
-          company_name: string
-          id: number
-          updated_at: string
-          wholesale_email: string
-        }
+          company_name: string;
+          id: number;
+          updated_at: string;
+          wholesale_email: string;
+        };
         Insert: {
-          company_name?: string
-          id?: number
-          updated_at?: string
-          wholesale_email?: string
-        }
+          company_name?: string;
+          id?: number;
+          updated_at?: string;
+          wholesale_email?: string;
+        };
         Update: {
-          company_name?: string
-          id?: number
-          updated_at?: string
-          wholesale_email?: string
-        }
-        Relationships: []
-      }
+          company_name?: string;
+          id?: number;
+          updated_at?: string;
+          wholesale_email?: string;
+        };
+        Relationships: [];
+      };
       user_roles: {
         Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at: string;
+          id: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
+          created_at?: string;
+          id?: string;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
         Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
-    }
+          created_at?: string;
+          id?: string;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       has_role: {
         Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      next_order_number: { Args: never; Returns: string }
-    }
+          _role: Database["public"]["Enums"]["app_role"];
+          _user_id: string;
+        };
+        Returns: boolean;
+      };
+      next_order_number: { Args: never; Returns: string };
+    };
     Enums: {
-      app_role: "admin" | "customer"
-    }
+      app_role: "admin" | "customer";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   public: {
@@ -524,4 +622,4 @@ export const Constants = {
       app_role: ["admin", "customer"],
     },
   },
-} as const
+} as const;
