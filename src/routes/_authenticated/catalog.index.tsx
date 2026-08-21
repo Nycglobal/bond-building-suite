@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/account";
 import { useSignedUrls } from "@/lib/images";
+import { looseDiamondImagePath } from "@/lib/loose-diamonds";
 import { cn } from "@/lib/utils";
 
 type CatalogSearch = {
@@ -122,23 +123,6 @@ function CatalogPage() {
   const { looseDiamonds } = Route.useSearch();
   if (looseDiamonds) return <LooseDiamondCatalog />;
   return <JewelryCatalogPage />;
-}
-
-function looseDiamondImagePath(diamond: {
-  image_path: string | null;
-  carat_weight: number | null;
-  page: number | null;
-}) {
-  if (diamond.image_path?.startsWith("2_carat_images/")) return diamond.image_path;
-  if (diamond.image_path?.startsWith("3_carat_images/")) return diamond.image_path;
-  if (diamond.image_path?.startsWith("4_carat_images/")) return diamond.image_path;
-
-  const carat = Number(diamond.carat_weight ?? 0);
-  if (carat >= 4 && diamond.page != null) {
-    return `4_carat_images/page_${String(diamond.page).padStart(3, "0")}.png`;
-  }
-
-  return diamond.image_path;
 }
 
 function LooseDiamondCatalog() {
@@ -382,13 +366,19 @@ function LooseDiamondCatalog() {
                     }}
                   />
                 </div>
-                <div className="aspect-square overflow-hidden bg-secondary ring-1 ring-border/70 transition group-hover:ring-primary/60">
-                  <ProductImage
-                    src={imageUrl}
-                    alt={`${diamond.carat_weight ?? ""} carat ${diamond.shape ?? "diamond"}`}
-                    urlLoading={signed.isLoading}
-                  />
-                </div>
+                <Link
+                  to="/catalog/loose-diamond/$diamondId"
+                  params={{ diamondId: diamond.id }}
+                  className="block"
+                >
+                  <div className="aspect-square overflow-hidden bg-secondary ring-1 ring-border/70 transition group-hover:ring-primary/60">
+                    <ProductImage
+                      src={imageUrl}
+                      alt={`${diamond.carat_weight ?? ""} carat ${diamond.shape ?? "diamond"}`}
+                      urlLoading={signed.isLoading}
+                    />
+                  </div>
+                </Link>
                 <div className="mt-3 space-y-1">
                   <p className="text-[0.65rem] tracking-[0.2em] text-muted-foreground uppercase">
                     {diamond.report_number ?? `Item ${diamond.item_number ?? diamond.page ?? "—"}`}

@@ -24,6 +24,7 @@ import { Route as AuthenticatedAdminOrdersIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminOrdersOrderIdRouteImport } from './routes/_authenticated/admin.orders.$orderId'
 import { Route as AuthenticatedAdminProductsIndexRouteImport } from './routes/_authenticated/admin.products.index'
 import { Route as AuthenticatedAdminProductsProductIdRouteImport } from './routes/_authenticated/admin.products.$productId'
+import { Route as AuthenticatedCatalogLooseDiamondDiamondIdRouteImport } from './routes/_authenticated/catalog.loose-diamond.$diamondId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -108,6 +109,12 @@ const AuthenticatedAdminProductsProductIdRoute =
     path: '/products/$productId',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedCatalogLooseDiamondDiamondIdRoute =
+  AuthenticatedCatalogLooseDiamondDiamondIdRouteImport.update({
+    id: '/catalog/loose-diamond/$diamondId',
+    path: '/catalog/loose-diamond/$diamondId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/catalog/': typeof AuthenticatedCatalogIndexRoute
   '/admin/orders/$orderId': typeof AuthenticatedAdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AuthenticatedAdminProductsProductIdRoute
+  '/catalog/loose-diamond/$diamondId': typeof AuthenticatedCatalogLooseDiamondDiamondIdRoute
   '/admin/orders/': typeof AuthenticatedAdminOrdersIndexRoute
   '/admin/products/': typeof AuthenticatedAdminProductsIndexRoute
 }
@@ -137,6 +145,7 @@ export interface FileRoutesByTo {
   '/catalog': typeof AuthenticatedCatalogIndexRoute
   '/admin/orders/$orderId': typeof AuthenticatedAdminOrdersOrderIdRoute
   '/admin/products/$productId': typeof AuthenticatedAdminProductsProductIdRoute
+  '/catalog/loose-diamond/$diamondId': typeof AuthenticatedCatalogLooseDiamondDiamondIdRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersIndexRoute
   '/admin/products': typeof AuthenticatedAdminProductsIndexRoute
 }
@@ -155,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/catalog/': typeof AuthenticatedCatalogIndexRoute
   '/_authenticated/admin/orders/$orderId': typeof AuthenticatedAdminOrdersOrderIdRoute
   '/_authenticated/admin/products/$productId': typeof AuthenticatedAdminProductsProductIdRoute
+  '/_authenticated/catalog/loose-diamond/$diamondId': typeof AuthenticatedCatalogLooseDiamondDiamondIdRoute
   '/_authenticated/admin/orders/': typeof AuthenticatedAdminOrdersIndexRoute
   '/_authenticated/admin/products/': typeof AuthenticatedAdminProductsIndexRoute
 }
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/catalog/'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
+    | '/catalog/loose-diamond/$diamondId'
     | '/admin/orders/'
     | '/admin/products/'
   fileRoutesByTo: FileRoutesByTo
@@ -188,6 +199,7 @@ export interface FileRouteTypes {
     | '/catalog'
     | '/admin/orders/$orderId'
     | '/admin/products/$productId'
+    | '/catalog/loose-diamond/$diamondId'
     | '/admin/orders'
     | '/admin/products'
   id:
@@ -205,6 +217,7 @@ export interface FileRouteTypes {
     | '/_authenticated/catalog/'
     | '/_authenticated/admin/orders/$orderId'
     | '/_authenticated/admin/products/$productId'
+    | '/_authenticated/catalog/loose-diamond/$diamondId'
     | '/_authenticated/admin/orders/'
     | '/_authenticated/admin/products/'
   fileRoutesById: FileRoutesById
@@ -322,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProductsProductIdRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/catalog/loose-diamond/$diamondId': {
+      id: '/_authenticated/catalog/loose-diamond/$diamondId'
+      path: '/catalog/loose-diamond/$diamondId'
+      fullPath: '/catalog/loose-diamond/$diamondId'
+      preLoaderRoute: typeof AuthenticatedCatalogLooseDiamondDiamondIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -356,6 +376,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMyOrderRoute: typeof AuthenticatedMyOrderRoute
   AuthenticatedCatalogProductIdRoute: typeof AuthenticatedCatalogProductIdRoute
   AuthenticatedCatalogIndexRoute: typeof AuthenticatedCatalogIndexRoute
+  AuthenticatedCatalogLooseDiamondDiamondIdRoute: typeof AuthenticatedCatalogLooseDiamondDiamondIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -363,6 +384,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMyOrderRoute: AuthenticatedMyOrderRoute,
   AuthenticatedCatalogProductIdRoute: AuthenticatedCatalogProductIdRoute,
   AuthenticatedCatalogIndexRoute: AuthenticatedCatalogIndexRoute,
+  AuthenticatedCatalogLooseDiamondDiamondIdRoute:
+    AuthenticatedCatalogLooseDiamondDiamondIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
