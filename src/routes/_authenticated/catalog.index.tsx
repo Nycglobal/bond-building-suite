@@ -161,7 +161,9 @@ function LooseDiamondCatalog() {
         (caratFilter === "3-4" && carat >= 3 && carat < 4) ||
         (caratFilter === "4-plus" && carat >= 4);
       const matchesShape = shapeFilter === "all" || diamond.shape === shapeFilter;
-      const matchesColor = colorFilter === "all" || diamond.color_grade === colorFilter;
+      const matchesColor =
+        colorFilter === "all" ||
+        (diamond.color_grade ?? "").toLowerCase().includes(colorFilter.toLowerCase());
       const searchable = [
         diamond.category,
         diamond.item_number,
@@ -248,12 +250,12 @@ function LooseDiamondCatalog() {
   ];
   const colorOptions = [
     { value: "all", label: "All Colors" },
-    { value: "White", label: "White Diamond" },
-    { value: "Pink", label: "Pink Diamond" },
-    { value: "Green", label: "Green Diamond" },
-    { value: "Yellow", label: "Yellow Diamond" },
-    { value: "Blue", label: "Blue Diamond" },
-    { value: "Desert", label: "Desert Diamond" },
+    { value: "white", label: "White Diamond" },
+    { value: "pink", label: "Pink Diamond" },
+    { value: "green", label: "Green Diamond" },
+    { value: "yellow", label: "Yellow Diamond" },
+    { value: "blue", label: "Blue Diamond" },
+    { value: "desert", label: "Desert Diamond" },
   ];
   const caratOptions = [
     { value: "all", label: "All Carat Weights" },
