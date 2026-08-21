@@ -13,7 +13,7 @@ const submitSchema = z.object({
 
 export const submitOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => submitSchema.parse(data))
+  .validator((data: unknown) => submitSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { getAdminClient } = await import("@/lib/admin.server");
     const { buildOrderRows, sendOrderEmails } = await import("@/lib/orders.server");
@@ -28,7 +28,9 @@ export const submitOrder = createServerFn({ method: "POST" })
 
     const { data: cart, error: cartError } = await admin
       .from("cart_items")
-      .select("quantity, product:products(id, style_number, product_name, wholesale_price, category:categories(name))")
+      .select(
+        "quantity, product:products(id, style_number, product_name, wholesale_price, category:categories(name)), loose_diamond:loose_diamonds(id, carat_weight, shape, color_grade, clarity_grade, cut_style, report_number)",
+      )
       .eq("user_id", context.userId);
     if (cartError) throw new Error(cartError.message);
     if (!cart || cart.length === 0) throw new Error("Your catalog order is empty");

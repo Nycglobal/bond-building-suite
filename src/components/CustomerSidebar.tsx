@@ -14,6 +14,7 @@ import {
   TrendingUp,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { Button } from "@/components/ui/button";
@@ -62,6 +63,10 @@ export function CustomerSidebar({
   // Menu icons are sized to 30px by the sidebar itself when collapsed; this
   // size is only needed for the footer Sign Out button (not a menu item).
   const iconSize = collapsed ? "h-6.5 w-6.5" : "h-4 w-4";
+  const [openCategoryId, setOpenCategoryId] = useState<string | null>(null);
+  const quietActiveProps = {
+    className: "font-medium text-sidebar-primary",
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -97,9 +102,7 @@ export function CustomerSidebar({
                       labGrown: undefined,
                     }}
                     activeOptions={{ exact: true, includeSearch: true }}
-                    activeProps={{
-                      className: "bg-sidebar-accent text-sidebar-primary font-medium",
-                    }}
+                    activeProps={quietActiveProps}
                   >
                     <Sparkles className="h-4 w-4" />
                     <span>All Jewelry</span>
@@ -118,9 +121,7 @@ export function CustomerSidebar({
                       labGrown: undefined,
                     }}
                     activeOptions={{ exact: true, includeSearch: true }}
-                    activeProps={{
-                      className: "bg-sidebar-accent text-sidebar-primary font-medium",
-                    }}
+                    activeProps={quietActiveProps}
                   >
                     <TrendingUp className="h-4 w-4" />
                     <span>Trending</span>
@@ -141,9 +142,23 @@ export function CustomerSidebar({
                 const CategoryIcon = CATEGORY_ICONS[category.name] ?? Gem;
                 return (
                   <Collapsible key={category.id} asChild>
-                    <SidebarMenuItem>
+                    <SidebarMenuItem
+                      className="group/category"
+                      onMouseEnter={() => collapsed && setOpenCategoryId(category.id)}
+                      onMouseLeave={() => collapsed && setOpenCategoryId(null)}
+                      onFocus={() => collapsed && setOpenCategoryId(category.id)}
+                      onBlur={(event) => {
+                        if (collapsed && !event.currentTarget.contains(event.relatedTarget)) {
+                          setOpenCategoryId(null);
+                        }
+                      }}
+                    >
                       <div className="flex items-center">
-                        <SidebarMenuButton asChild tooltip={category.name}>
+                        <SidebarMenuButton
+                          asChild
+                          tooltip={category.name}
+                          className="group-data-[collapsible=icon]:justify-center"
+                        >
                           <Link
                             to="/catalog"
                             search={{
@@ -155,15 +170,13 @@ export function CustomerSidebar({
                               labGrown: undefined,
                             }}
                             activeOptions={{ includeSearch: true }}
-                            activeProps={{
-                              className: "bg-sidebar-accent text-sidebar-primary font-medium",
-                            }}
+                            activeProps={quietActiveProps}
                           >
                             <CategoryIcon className="h-4 w-4" />
                             <span>{category.name}</span>
                           </Link>
                         </SidebarMenuButton>
-                        {category.subcategories.length > 0 && (
+                        {category.subcategories.length > 0 && !collapsed && (
                           <CollapsibleTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
                               <ChevronDown className="h-4 w-4 transition-transform in-data-[state=open]:rotate-180" />
@@ -173,7 +186,7 @@ export function CustomerSidebar({
                         )}
                       </div>
                       {category.subcategories.length > 0 && (
-                        <CollapsibleContent>
+                        <CollapsibleContent className="overflow-hidden transition-all duration-200 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
                           <div className="ml-8 border-l border-sidebar-border pl-2">
                             {category.subcategories.map((subcategory) => (
                               <SidebarMenuButton key={subcategory.id} asChild size="sm">
@@ -199,6 +212,40 @@ export function CustomerSidebar({
                           </div>
                         </CollapsibleContent>
                       )}
+                      {category.subcategories.length > 0 && collapsed && (
+                        <div
+                          className={`absolute left-full top-0 z-50 w-56 pl-2 transition-all duration-200 ${
+                            openCategoryId === category.id
+                              ? "pointer-events-auto translate-x-0 opacity-100"
+                              : "pointer-events-none translate-x-1 opacity-0"
+                          }`}
+                        >
+                          <div className="rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-xl">
+                            <p className="px-2 pb-2 text-xs font-semibold tracking-[0.14em] text-sidebar-primary uppercase">
+                              {category.name}
+                            </p>
+                            <div className="space-y-0.5">
+                              {category.subcategories.map((subcategory) => (
+                                <Link
+                                  key={subcategory.id}
+                                  to="/catalog"
+                                  search={{
+                                    category: category.id,
+                                    subcategory: subcategory.id,
+                                    q: undefined,
+                                    ringFilter: undefined,
+                                    trending: undefined,
+                                    labGrown: undefined,
+                                  }}
+                                  className="block rounded-md px-2 py-1.5 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                                >
+                                  {subcategory.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </SidebarMenuItem>
                   </Collapsible>
                 );
@@ -209,18 +256,37 @@ export function CustomerSidebar({
                     to="/catalog"
                     search={{
                       labGrown: true,
+                      looseDiamonds: undefined,
                       category: undefined,
                       q: undefined,
                       ringFilter: undefined,
                       trending: undefined,
                     }}
                     activeOptions={{ exact: true, includeSearch: true }}
-                    activeProps={{
-                      className: "bg-sidebar-accent text-sidebar-primary font-medium",
-                    }}
+                    activeProps={quietActiveProps}
                   >
                     <Diamond className="h-4 w-4" />
                     <span>Lab Grown Diamond</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Loose Diamonds">
+                  <Link
+                    to="/catalog"
+                    search={{
+                      labGrown: undefined,
+                      looseDiamonds: true,
+                      category: undefined,
+                      q: undefined,
+                      ringFilter: undefined,
+                      trending: undefined,
+                    }}
+                    activeOptions={{ exact: true, includeSearch: true }}
+                    activeProps={quietActiveProps}
+                  >
+                    <Diamond className="h-4 w-4" />
+                    <span>Loose Diamonds</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>

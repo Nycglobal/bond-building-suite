@@ -28,7 +28,7 @@ const customerSchema = z.object({
 
 export const createCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => customerSchema.parse(data))
+  .validator((data: unknown) => customerSchema.parse(data))
   .handler(async ({ data, context }) => {
     const { assertAdmin, getAdminClient } = await import("@/lib/admin.server");
     await assertAdmin(context.supabase, context.userId);
@@ -71,7 +71,7 @@ export const createCustomer = createServerFn({ method: "POST" })
 
 export const updateCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     customerSchema.omit({ password: true }).extend({ id: z.string().uuid() }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -113,7 +113,7 @@ export const updateCustomer = createServerFn({ method: "POST" })
 
 export const setCustomerPassword = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ id: z.string().uuid(), password: passwordSchema }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -137,7 +137,7 @@ export const setCustomerPassword = createServerFn({ method: "POST" })
 
 export const deleteCustomer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { assertAdmin, getAdminClient } = await import("@/lib/admin.server");
     await assertAdmin(context.supabase, context.userId);
@@ -169,7 +169,7 @@ export const adminExists = createServerFn({ method: "GET" }).handler(async () =>
 
 /** Public one-time setup: creates the first admin login only when none exists. */
 export const createFirstAdmin = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ username: usernameSchema, password: passwordSchema }).parse(data),
   )
   .handler(async ({ data }) => {

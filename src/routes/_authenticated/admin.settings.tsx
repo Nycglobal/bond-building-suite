@@ -97,7 +97,12 @@ function AdminSettings() {
             onChange={(e) => setWholesaleEmail(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Every submitted catalog order is delivered to this address.
+            Every submitted catalog order is sent to this address and a confirmation is sent to the
+            customer email. Resend must be configured on the server.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Keep the Resend API key out of this form. Add it as the server environment variable
+            <code className="ml-1 text-primary">RESEND_API_KEY</code>.
           </p>
         </div>
         <Button type="submit" disabled={save.isPending}>

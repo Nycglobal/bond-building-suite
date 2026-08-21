@@ -12,25 +12,35 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
-          product_id: string;
+          loose_diamond_id: string | null;
+          product_id: string | null;
           quantity: number;
           user_id: string;
         };
         Insert: {
           created_at?: string;
           id?: string;
-          product_id: string;
+          loose_diamond_id?: string | null;
+          product_id?: string | null;
           quantity?: number;
           user_id: string;
         };
         Update: {
           created_at?: string;
           id?: string;
-          product_id?: string;
+          loose_diamond_id?: string | null;
+          product_id?: string | null;
           quantity?: number;
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "cart_items_loose_diamond_id_fkey";
+            columns: ["loose_diamond_id"];
+            isOneToOne: false;
+            referencedRelation: "loose_diamonds";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "cart_items_product_id_fkey";
             columns: ["product_id"];
@@ -125,6 +135,51 @@ export type Database = {
           },
         ];
       };
+      loose_diamonds: {
+        Row: {
+          carat_weight: number | null;
+          category: string | null;
+          clarity_grade: string | null;
+          color_grade: string | null;
+          created_at: string;
+          cut_style: string | null;
+          id: string;
+          image_path: string | null;
+          item_number: string | null;
+          page: number | null;
+          report_number: string | null;
+          shape: string | null;
+        };
+        Insert: {
+          carat_weight?: number | null;
+          category?: string | null;
+          clarity_grade?: string | null;
+          color_grade?: string | null;
+          created_at?: string;
+          cut_style?: string | null;
+          id?: string;
+          image_path?: string | null;
+          item_number?: string | null;
+          page?: number | null;
+          report_number?: string | null;
+          shape?: string | null;
+        };
+        Update: {
+          carat_weight?: number | null;
+          category?: string | null;
+          clarity_grade?: string | null;
+          color_grade?: string | null;
+          created_at?: string;
+          cut_style?: string | null;
+          id?: string;
+          image_path?: string | null;
+          item_number?: string | null;
+          page?: number | null;
+          report_number?: string | null;
+          shape?: string | null;
+        };
+        Relationships: [];
+      };
       customers: {
         Row: {
           active: boolean;
@@ -168,6 +223,7 @@ export type Database = {
         Row: {
           category_name: string | null;
           id: string;
+          loose_diamond_id: string | null;
           order_id: string;
           product_id: string | null;
           product_name: string;
@@ -179,6 +235,7 @@ export type Database = {
         Insert: {
           category_name?: string | null;
           id?: string;
+          loose_diamond_id?: string | null;
           order_id: string;
           product_id?: string | null;
           product_name: string;
@@ -190,6 +247,7 @@ export type Database = {
         Update: {
           category_name?: string | null;
           id?: string;
+          loose_diamond_id?: string | null;
           order_id?: string;
           product_id?: string | null;
           product_name?: string;
@@ -199,6 +257,13 @@ export type Database = {
           unit_price?: number;
         };
         Relationships: [
+          {
+            foreignKeyName: "order_items_loose_diamond_id_fkey";
+            columns: ["loose_diamond_id"];
+            isOneToOne: false;
+            referencedRelation: "loose_diamonds";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "order_items_order_id_fkey";
             columns: ["order_id"];

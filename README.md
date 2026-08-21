@@ -27,6 +27,21 @@ npm run dev
 
 ## Deploy to Vercel
 
+### Import Loose Diamonds
+
+Run the migration `supabase/migrations/20260820150000_add_loose_diamonds.sql`
+in Supabase SQL Editor. Then import these files into the `loose_diamonds` table
+using Supabase's table import:
+
+- `csvfiles/2_carat_diamonds.csv`
+- `csvfiles/3_carat_diamonds.csv`
+- `csvfiles/4_carat_diamonds.csv`
+
+Upload the referenced image folders to the private `images` Storage bucket,
+preserving the paths in each CSV's `image_path` column. The customer sidebar's
+**Loose Diamonds** link will then show the imported records with 2-carat,
+3-carat, and 4+ carat filters.
+
 This app is a TanStack Start app with a Nitro server. `vite.config.ts` builds it
 for Vercel (Nitro `vercel` preset → `.vercel/output`, the Vercel Build Output
 API). `vercel.json` configures the project. Lovable's own build still targets
@@ -44,6 +59,8 @@ Preview; the values are in your local `.env`, which is git-ignored):
 | `SUPABASE_URL` | runtime, server |
 | `SUPABASE_PUBLISHABLE_KEY` | runtime, server |
 | `SUPABASE_SERVICE_ROLE_KEY` | runtime, server (secret) |
+| `RESEND_API_KEY` | runtime, server (secret; required for order emails) |
+| `LOVABLE_EMAIL_FROM` | runtime, server; verified Resend sender, e.g. `Jewel Brillance NYC <orders@example.com>` |
 
 **2. Connect the repo** — Vercel will detect `vercel.json`, run
 `npm install` + `npm run build`, and use the generated `.vercel/output`.
