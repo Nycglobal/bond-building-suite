@@ -5,6 +5,7 @@ import {
   CircleDot,
   ChevronDown,
   Diamond,
+  FlaskConical,
   Gem,
   History,
   Link as LinkIcon,
@@ -274,7 +275,7 @@ export function CustomerSidebar({
                     activeOptions={{ exact: true, includeSearch: true }}
                     activeProps={quietActiveProps}
                   >
-                    <Diamond className="h-4 w-4" />
+                    <FlaskConical className="h-4 w-4" />
                     <span>Lab Grown Diamond</span>
                   </Link>
                 </SidebarMenuButton>
