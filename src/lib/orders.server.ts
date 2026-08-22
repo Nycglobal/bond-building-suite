@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { looseDiamondImagePath } from "@/lib/loose-diamonds";
+
 type CartRow = {
   quantity: number;
   product: {
@@ -29,6 +31,9 @@ export type OrderItemRow = {
   quantity: number;
   unit_price: number;
   total_price: number;
+  image_path?: string | null;
+  image_bucket?: string | null;
+  image_content_id?: string | null;
 };
 
 export function buildOrderRows(cart: unknown[]) {
@@ -71,6 +76,13 @@ function money(value: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
 }
 
+function imageContentType(path: string) {
+  const extension = path.split(".").pop()?.toLowerCase();
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  return "image/jpeg";
+}
+
 export function buildOrderEmailHtml(order: {
   order_number: string;
   customer_name: string;
@@ -87,6 +99,7 @@ export function buildOrderEmailHtml(order: {
   const rows = order.items
     .map(
       (item) => `<tr>
+        <td style="padding:10px 12px;border-bottom:1px solid #e6e8ee;">${item.image_content_id ? `<img src="cid:${item.image_content_id}" alt="${item.product_name}" style="width:64px;height:64px;object-fit:cover;display:block;" />` : "—"}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #e6e8ee;">${item.style_number}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #e6e8ee;">${item.product_name}</td>
         <td style="padding:10px 12px;border-bottom:1px solid #e6e8ee;">${item.category_name ?? "—"}</td>
@@ -111,6 +124,7 @@ export function buildOrderEmailHtml(order: {
     <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:16px;">
       <thead>
         <tr style="background:#f4f5f8;text-align:left;">
+          <th style="padding:10px 12px;">Image</th>
           <th style="padding:10px 12px;">Style #</th>
           <th style="padding:10px 12px;">Product</th>
           <th style="padding:10px 12px;">Category</th>
@@ -143,9 +157,76 @@ export async function sendOrderEmails(admin: SupabaseClient, orderId: string) {
   const { data: settings } = await admin.from("settings").select("*").eq("id", 1).maybeSingle();
   if (!order || !settings) return false;
 
+  const orderItems = (items ?? []) as OrderItemRow[];
+  const productIds = orderItems
+    .map((item) => item.product_id)
+    .filter((id): id is string => Boolean(id));
+  const diamondIds = orderItems
+    .map((item) => item.loose_diamond_id)
+    .filter((id): id is string => Boolean(id));
+  const [{ data: products }, { data: diamonds }] = await Promise.all([
+    productIds.length
+      ? admin
+          .from("products")
+          .select("id, product_images(image_path, image_order, is_primary, bucket)")
+          .in("id", productIds)
+      : Promise.resolve({ data: [] }),
+    diamondIds.length
+      ? admin
+          .from("loose_diamonds")
+          .select("id, image_path, carat_weight, page")
+          .in("id", diamondIds)
+      : Promise.resolve({ data: [] }),
+  ]);
+
+  const imageByItemId = new Map<string, { path: string; bucket: string }>();
+  for (const product of products ?? []) {
+    const images = [...(product.product_images ?? [])].sort(
+      (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
+    );
+    if (images[0])
+      imageByItemId.set(product.id, {
+        path: images[0].image_path,
+        bucket: images[0].bucket,
+      });
+  }
+  for (const diamond of diamonds ?? []) {
+    const path = looseDiamondImagePath(diamond);
+    if (path) imageByItemId.set(diamond.id, { path, bucket: "images" });
+  }
+
+  const attachments: Array<{ filename: string; content: string; content_id: string }> = [];
+  const itemsWithImages = await Promise.all(
+    orderItems.map(async (item, index) => {
+      const imageRef = item.product_id
+        ? imageByItemId.get(item.product_id)
+        : item.loose_diamond_id
+          ? imageByItemId.get(item.loose_diamond_id)
+          : undefined;
+      if (!imageRef) return item;
+
+      const { data: image, error } = await admin.storage
+        .from(imageRef.bucket)
+        .download(imageRef.path);
+      if (error || !image) {
+        console.warn(`Could not attach image ${imageRef.path} to order ${order.order_number}`);
+        return item;
+      }
+
+      const contentId = `order-item-${index}`;
+      const filename = `order-${order.order_number}-${index + 1}.${imageRef.path.split(".").pop() ?? "jpg"}`;
+      attachments.push({
+        filename,
+        content: Buffer.from(await image.arrayBuffer()).toString("base64"),
+        content_id: contentId,
+      });
+      return { ...item, image_content_id: contentId };
+    }),
+  );
+
   const html = buildOrderEmailHtml({
     ...order,
-    items: (items ?? []) as OrderItemRow[],
+    items: itemsWithImages,
     company: settings.company_name,
   });
 
@@ -172,6 +253,7 @@ export async function sendOrderEmails(admin: SupabaseClient, orderId: string) {
       to,
       subject: `Wholesale Catalog Order ${order.order_number} — ${order.company_name}`,
       html,
+      attachments,
     }),
   });
 

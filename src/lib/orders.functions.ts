@@ -69,8 +69,6 @@ export const submitOrder = createServerFn({ method: "POST" })
       throw new Error(itemsError.message);
     }
 
-    await admin.from("cart_items").delete().eq("user_id", context.userId);
-
     const emailed = await sendOrderEmails(admin, order.id);
 
     return { orderNumber: order.order_number, emailed };

@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Printer } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -38,6 +38,7 @@ export const Route = createFileRoute("/_authenticated/my-order")({
 });
 
 function MyOrderPage() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { account } = useAccount();
   const [form, setForm] = useState({
@@ -47,7 +48,6 @@ function MyOrderPage() {
     phone: "",
     notes: "",
   });
-  const [result, setResult] = useState<{ orderNumber: string; emailed: boolean } | null>(null);
 
   useEffect(() => {
     if (!account?.customer) return;
@@ -126,53 +126,19 @@ function MyOrderPage() {
   const submit = useMutation({
     mutationFn: async () => submitOrder({ data: form }),
     onSuccess: (submitResult) => {
-      setResult(submitResult);
       void queryClient.invalidateQueries({ queryKey: ["cart"] });
       void queryClient.invalidateQueries({ queryKey: ["cart-count"] });
+      void navigate({
+        to: "/order-success",
+        search: {
+          orderNumber: submitResult.orderNumber,
+          emailed: submitResult.emailed,
+        },
+      });
     },
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "Could not submit your order"),
   });
-
-  if (result) {
-    return (
-      <CustomerShell>
-        <div className="mx-auto max-w-lg border border-border p-10 text-center">
-          <h1 className="text-2xl text-primary">Order Submitted</h1>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Thank you. Your catalog order{" "}
-            <strong className="text-primary">{result.orderNumber}</strong> has been sent to Jewel
-            Brillance NYC. Our team will contact you shortly.
-          </p>
-          {result.emailed ? (
-            <p className="mt-3 text-sm text-muted-foreground">
-              A confirmation email was sent to{" "}
-              <strong className="text-primary">{form.email}</strong>.
-            </p>
-          ) : (
-            <p className="mt-3 text-xs text-muted-foreground">
-              Note: email delivery is not configured on this project yet, but your order has been
-              received.
-            </p>
-          )}
-          <Button asChild className="mt-8">
-            <Link
-              to="/catalog"
-              search={{
-                category: undefined,
-                q: undefined,
-                ringFilter: undefined,
-                trending: undefined,
-                labGrown: undefined,
-              }}
-            >
-              Continue Browsing
-            </Link>
-          </Button>
-        </div>
-      </CustomerShell>
-    );
-  }
 
   return (
     <CustomerShell>
@@ -407,6 +373,7 @@ function MyOrderPage() {
             <table className="mt-6 w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b-2 border-primary text-left">
+                  <th className="w-20 py-2 pr-4 font-medium">Image</th>
                   <th className="py-2 pr-4 font-medium">Style #</th>
                   <th className="py-2 pr-4 font-medium">Product</th>
                   <th className="py-2 pr-4 text-right font-medium">Qty</th>
@@ -415,19 +382,51 @@ function MyOrderPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-b border-border">
-                    <td className="py-2 pr-4">{row.product?.style_number}</td>
-                    <td className="py-2 pr-4">{row.product?.product_name}</td>
-                    <td className="py-2 pr-4 text-right">{row.quantity}</td>
-                    <td className="py-2 pr-4 text-right">
-                      {formatPrice(row.product?.wholesale_price)}
-                    </td>
-                    <td className="py-2 text-right">
-                      {formatPrice(row.quantity * Number(row.product?.wholesale_price ?? 0))}
-                    </td>
-                  </tr>
-                ))}
+                {rows.map((row) => {
+                  const images = [...(row.product?.product_images ?? [])].sort(
+                    (a, b) =>
+                      Number(b.is_primary) - Number(a.is_primary) || a.image_order - b.image_order,
+                  );
+                  const loosePath = row.loose_diamond?.image_path
+                    ? row.loose_diamond.image_path.startsWith("images/") &&
+                      Number(row.loose_diamond.carat_weight ?? 0) >= 4
+                      ? `images/4_carat_images/page_${String(row.loose_diamond.page ?? 0).padStart(3, "0")}.png`
+                      : row.loose_diamond.image_path
+                    : undefined;
+                  const imagePath = images[0]?.image_path ?? loosePath;
+                  const imageUrl = imagePath ? signed.data?.[imagePath] : undefined;
+                  const productName =
+                    row.product?.product_name ??
+                    `${row.loose_diamond?.carat_weight ?? ""} Carat ${row.loose_diamond?.shape ?? "Diamond"}`;
+
+                  return (
+                    <tr key={row.id} className="border-b border-border">
+                      <td className="py-2 pr-4">
+                        {imageUrl ? (
+                          <img
+                            src={imageUrl}
+                            alt={productName}
+                            loading="eager"
+                            className="h-14 w-14 object-cover"
+                          />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">No image</span>
+                        )}
+                      </td>
+                      <td className="py-2 pr-4">
+                        {row.product?.style_number ?? row.loose_diamond?.report_number ?? "-"}
+                      </td>
+                      <td className="py-2 pr-4">{productName}</td>
+                      <td className="py-2 pr-4 text-right">{row.quantity}</td>
+                      <td className="py-2 pr-4 text-right">
+                        {formatPrice(row.product?.wholesale_price)}
+                      </td>
+                      <td className="py-2 text-right">
+                        {formatPrice(row.quantity * Number(row.product?.wholesale_price ?? 0))}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
 
