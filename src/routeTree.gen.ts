@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedMyOrderRouteImport } from './routes/_authenticated/my-order'
+import { Route as AuthenticatedOrderHistoryRouteImport } from './routes/_authenticated/order-history'
 import { Route as AuthenticatedOrderSuccessRouteImport } from './routes/_authenticated/order-success'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated/admin.categories'
@@ -51,6 +52,12 @@ const AuthenticatedMyOrderRoute = AuthenticatedMyOrderRouteImport.update({
   path: '/my-order',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrderHistoryRoute =
+  AuthenticatedOrderHistoryRouteImport.update({
+    id: '/order-history',
+    path: '/order-history',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrderSuccessRoute =
   AuthenticatedOrderSuccessRouteImport.update({
     id: '/order-success',
@@ -128,6 +135,7 @@ export interface FileRoutesByFullPath {
   '/setup': typeof SetupRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/my-order': typeof AuthenticatedMyOrderRoute
+  '/order-history': typeof AuthenticatedOrderHistoryRoute
   '/order-success': typeof AuthenticatedOrderSuccessRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
@@ -145,6 +153,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/setup': typeof SetupRoute
   '/my-order': typeof AuthenticatedMyOrderRoute
+  '/order-history': typeof AuthenticatedOrderHistoryRoute
   '/order-success': typeof AuthenticatedOrderSuccessRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
@@ -165,6 +174,7 @@ export interface FileRoutesById {
   '/setup': typeof SetupRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/my-order': typeof AuthenticatedMyOrderRoute
+  '/_authenticated/order-history': typeof AuthenticatedOrderHistoryRoute
   '/_authenticated/order-success': typeof AuthenticatedOrderSuccessRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/customers': typeof AuthenticatedAdminCustomersRoute
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/admin'
     | '/my-order'
+    | '/order-history'
     | '/order-success'
     | '/admin/categories'
     | '/admin/customers'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/'
     | '/setup'
     | '/my-order'
+    | '/order-history'
     | '/order-success'
     | '/admin/categories'
     | '/admin/customers'
@@ -221,6 +233,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/_authenticated/admin'
     | '/_authenticated/my-order'
+    | '/_authenticated/order-history'
     | '/_authenticated/order-success'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/customers'
@@ -276,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/my-order'
       fullPath: '/my-order'
       preLoaderRoute: typeof AuthenticatedMyOrderRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/order-history': {
+      id: '/_authenticated/order-history'
+      path: '/order-history'
+      fullPath: '/order-history'
+      preLoaderRoute: typeof AuthenticatedOrderHistoryRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/order-success': {
@@ -394,6 +414,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMyOrderRoute: typeof AuthenticatedMyOrderRoute
+  AuthenticatedOrderHistoryRoute: typeof AuthenticatedOrderHistoryRoute
   AuthenticatedOrderSuccessRoute: typeof AuthenticatedOrderSuccessRoute
   AuthenticatedCatalogProductIdRoute: typeof AuthenticatedCatalogProductIdRoute
   AuthenticatedCatalogIndexRoute: typeof AuthenticatedCatalogIndexRoute
@@ -403,6 +424,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMyOrderRoute: AuthenticatedMyOrderRoute,
+  AuthenticatedOrderHistoryRoute: AuthenticatedOrderHistoryRoute,
   AuthenticatedOrderSuccessRoute: AuthenticatedOrderSuccessRoute,
   AuthenticatedCatalogProductIdRoute: AuthenticatedCatalogProductIdRoute,
   AuthenticatedCatalogIndexRoute: AuthenticatedCatalogIndexRoute,

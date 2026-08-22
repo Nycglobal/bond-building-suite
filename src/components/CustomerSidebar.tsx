@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Diamond,
   Gem,
+  History,
   Link as LinkIcon,
   LogOut,
   ShoppingBag,
@@ -219,6 +220,14 @@ export function CustomerSidebar({
                               ? "pointer-events-auto translate-x-0 opacity-100"
                               : "pointer-events-none translate-x-1 opacity-0"
                           }`}
+                          onMouseEnter={() => setOpenCategoryId(category.id)}
+                          onMouseLeave={() => setOpenCategoryId(null)}
+                          onFocus={() => setOpenCategoryId(category.id)}
+                          onBlur={(event) => {
+                            if (!event.currentTarget.contains(event.relatedTarget)) {
+                              setOpenCategoryId(null);
+                            }
+                          }}
                         >
                           <div className="rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-xl">
                             <p className="px-2 pb-2 text-xs font-semibold tracking-[0.14em] text-sidebar-primary uppercase">
@@ -313,6 +322,19 @@ export function CustomerSidebar({
                   </Link>
                 </SidebarMenuButton>
                 {cartCount > 0 && <SidebarMenuBadge>{cartCount}</SidebarMenuBadge>}
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Order History">
+                  <Link
+                    to="/order-history"
+                    activeProps={{
+                      className: "bg-sidebar-accent text-sidebar-primary font-medium",
+                    }}
+                  >
+                    <History className="h-4 w-4" />
+                    <span>Order History</span>
+                  </Link>
+                </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
