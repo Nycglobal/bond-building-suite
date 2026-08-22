@@ -41,7 +41,7 @@ export function useCartCount() {
   });
 }
 
-export function CustomerShell({ children }: { children: ReactNode }) {
+export function   CustomerShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { account } = useAccount();
   const categories = useCategories();
